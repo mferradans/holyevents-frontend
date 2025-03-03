@@ -1,0 +1,6 @@
+{
+    "rewrites": [
+      { "source": "/payment_success", "destination": "/index.html" }
+    ]
+  }
+  
