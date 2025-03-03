@@ -1,0 +1,50 @@
+/* Contenedor principal que controla la estructura */
+.statistics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Estructura de las cards superiores */
+.top-cards {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.top-cards .small-card {
+  flex: 1;
+  max-width: 49%; /* Ajustar el ancho de las dos cards superiores */
+}
+
+/* Contenedor principal para el gráfico y la lista */
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Card del gráfico de barras que ocupa 3/4 del ancho */
+.graph-card {
+  flex: 3;
+  max-width: 75%; /* Asegurar que el gráfico ocupe 3/4 del ancho */
+}
+
+/* Card de la lista de eventos */
+.list-card {
+  flex: 1;
+  height: calc(100% + 90px); /* Ajusta el alto para coincidir con la suma de las cards superiores y la card del gráfico */
+  max-width: 25%; /* Ajustar para que esté a la derecha con el ancho de 1/4 */
+}
+
+/* Separación de cada evento en la lista con una línea */
+.event-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Línea divisoria con opacidad para que no sea muy invasiva */
+  padding-bottom: 10px; /* Añadir espacio debajo de cada evento */
+  margin-bottom: 10px; /* Añadir espacio entre los eventos */
+}
+
+.event-item:last-child {
+  border-bottom: none; /* Quitar la línea del último elemento */
+}

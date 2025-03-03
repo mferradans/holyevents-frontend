@@ -1,0 +1,53 @@
+/* Fondo con degradado y sombra */
+.custom-navbar {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  padding: 10px 20px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Logo */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffffff;
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-img {
+  width: 50px;
+  margin-right: 10px;
+}
+
+/* Estilo de los enlaces */
+.nav-item,
+.nav-button {
+  color: white !important;
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 10px;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-item:hover,
+.nav-button:hover {
+  color: #00a8ff !important;
+  transform: scale(1.05);
+}
+
+/* Botón especial para el login/dashboard */
+.nav-button {
+  border-radius: 5px;
+  padding: 8px 15px;
+  background: #007bff;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-button:hover {
+  background: #0056b3;
+}

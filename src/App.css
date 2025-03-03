@@ -1,0 +1,213 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+
+
+
+.read-the-docs {
+  color: #888;
+}
+.event-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at center, #121517, #0f1214); /* Degradado radial azul noche */
+  color: white;
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  position: relative; /* Para usar el pseudo-elemento */
+  overflow: auto; /* Permitir el scroll en la página */
+}
+
+
+
+.full-screen-container {
+  height: 60vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  background: rgba(18, 21, 23, 0.6); /* Fondo transparente */
+  backdrop-filter: blur(0.5px); /* Blur */
+  border-radius: 10px;
+  padding: 40px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2); /* Sombreado */
+  width: 100%;
+  max-width: 400px; /* Ajuste de tamaño */
+  font-family: inherit; /* Usa las fuentes globales */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde blanco extremadamente fino */
+
+}
+/* Asegura que las etiquetas dentro de los formularios usen el color blanco y la fuente global */
+input, label, button, h2 {
+  color: white;
+  font-family: inherit; /* Usar la fuente definida globalmente */
+}
+
+
+.custom-input {
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Borde opaco con 20% de transparencia */
+  background-color: #1e1e1e; /* Fondo oscuro */
+  color: white; /* Texto claro */
+}
+
+.custom-input:focus {
+  border-color: rgba(255, 255, 255, 0.5); /* Borde más visible al enfocar */
+  outline: none; /* Eliminar el borde de enfoque adicional */
+}
+
+
+
+
+
+/* Estilo para los botones de ver eventos disponibles/no disponibles */
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.button-group button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  margin: 0 15px;
+  padding-bottom: 5px;
+  cursor: pointer;
+  transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+.button-group button.active {
+  color: #3399ff; /* Color neón para el botón activo */
+  border-bottom: 2px solid #3399ff; /* Línea neón debajo del botón activo */
+}
+
+.button-group button:not(.active):hover {
+  color: #999;
+}
+
+
+
+
+
+/* Contenedor principal */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
+
+  position: relative;
+}
+
+
+/* Flechas de navegación */
+.prev-arrow,
+.next-arrow {
+  font-size: 2rem;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.prev-arrow:hover,
+.next-arrow:hover {
+  color: #007bff;
+}
+
+.prev-arrow:disabled,
+.next-arrow:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Ocultar el botón si está deshabilitado */
+.prev-arrow:disabled,
+.next-arrow:disabled {
+  display: none;
+}
+
+
+
+/* Pantallas grandes - mantener flechas a los costados de los eventos */
+.prev-arrow {
+  position: absolute;
+  left: -50px; /* Ajustar para que esté fuera del contenedor */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.next-arrow {
+  position: absolute;
+  right: -50px; /* Ajustar para que esté fuera del contenedor */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Pantallas medianas y móviles */
+@media (max-width: 768px) {
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 20px;
+  }
+
+  .prev-arrow, .next-arrow {
+    position: static; /* Quitar el posicionamiento absoluto */
+    transform: none;  /* Quitar la transformación */
+    margin: 1px;     /* Añadir margen entre las flechas */
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+
+  .card-product-container {
+    margin-bottom: 1px; /* Añadir margen inferior para que las flechas no se solapen */
+  }
+}
+
+
+
+
+
+
+
+
+/* Estilo personalizado para tablas redondeadas */
+.custom-rounded-table {
+  border-radius: 15px; /* Bordes redondeados */
+  overflow: hidden; /* Oculta cualquier desbordamiento de los bordes */
+}
+
+.custom-rounded-table thead {
+  border-radius: 15px 15px 0 0; /* Bordes superiores redondeados */
+}
+
+.custom-rounded-table th, .custom-rounded-table td {
+  border: none; /* Quitar bordes internos */
+  padding: 15px; /* Espaciado en celdas */
+}
+
+.custom-rounded-table tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Añadir líneas divisorias suaves */
+}
