@@ -27,7 +27,7 @@ const SuccessPage = () => {
         <h1>¡Pago exitoso!</h1>
         <p>Gracias por tu compra. Descarga este comprobante y preséntalo el día del evento ¡no lo olvides!</p>
       </Alert>
-
+      console.log("Transaction ID en SuccessPage:", transactionId);
       {transactionId && (
         <Button variant="success" size="lg" onClick={handleDownload} className="my-3">
           Descargar Comprobante
