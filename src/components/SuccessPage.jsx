@@ -5,33 +5,29 @@ import Confetti from 'react-confetti'; // Solo si decides agregar confeti
 import { useWindowSize } from 'react-use'; // Para manejar el tamaño de la ventana
 
 const SuccessPage = () => {
+  console.log("✅ SuccessPage cargado");
+
   const location = useLocation();
+  console.log("🌍 URL actual:", location.href);
+
   const queryParams = new URLSearchParams(location.search);
+  console.log("🔍 Query Params:", location.search);
+
   const transactionId = queryParams.get('transactionId');
+  console.log("🆔 Transaction ID obtenido:", transactionId);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Obtener el tamaño de la ventana para el confeti
   const { width, height } = useWindowSize();
 
-  useEffect(() => {
-    console.log("✅ SuccessPage cargado");
-    console.log("🌍 URL actual:", window.location.href);
-    console.log("🔍 Query Params:", location.search);
-    console.log("🆔 Transaction ID obtenido:", transactionId);
-    console.log("🔗 API_URL:", API_URL);
-  }, [location.search, transactionId]);
-
   const handleDownload = () => {
     if (!transactionId) {
-      console.error("❌ Error: No hay transactionId, no se puede descargar el comprobante.");
+      console.error("❌ Error: No se recibió transactionId en la URL.");
       return;
     }
-
-    const receiptUrl = `${API_URL}/download_receipt/${transactionId}`;
-    console.log("📥 Intentando descargar desde:", receiptUrl);
-    
-    window.open(receiptUrl, '_blank');
+    console.log(`📥 Intentando descargar comprobante desde: ${API_URL}/download_receipt/${transactionId}`);
+    window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
   };
 
   return (
@@ -49,9 +45,8 @@ const SuccessPage = () => {
           Descargar Comprobante
         </Button>
       ) : (
-        <Alert variant="danger">
-          <p>❌ No se pudo obtener el ID de la transacción. Por favor, contacta con soporte.</p>
-        </Alert>
+        <p className="text-danger">⚠️ No se encontró el ID de la transacción.</p>
+
       )}
     </Container>
   );
