@@ -14,19 +14,12 @@ const SuccessPage = () => {
   const transactionId = queryParams.get('transactionId');
 
   useEffect(() => {
-    console.log("✅ SuccessPage cargado");
-    console.log("🌍 URL actual:", window.location.href);
-    console.log("🔍 Query Params:", location.search);
-    console.log("🆔 Transaction ID obtenido:", transactionId);
-
     if (!transactionId) {
-      console.error("❌ Error: No se recibió transactionId en la URL.");
-      navigate('/'); // Redirige al inicio o a una página de error según prefieras.
+      navigate('/');
     }
   }, [transactionId, navigate]);
 
   const handleDownload = () => {
-    console.log(`📥 Intentando descargar comprobante desde: ${API_URL}/download_receipt/${transactionId}`);
     window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
   };
 

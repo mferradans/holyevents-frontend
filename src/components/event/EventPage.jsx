@@ -32,7 +32,6 @@ const EventPage = () => {
   }, [id]);
 
   const handleFormSubmit = async (formData) => {
-    console.log("Datos enviados desde el formulario:", formData);
 
     const id = await createPreference(event, formData);
     if (id) {
