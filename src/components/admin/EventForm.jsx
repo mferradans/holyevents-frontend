@@ -227,7 +227,7 @@ const EventForm = () => {
             </Col>
             <Col md={5}>
               <Form.Group controlId="menuOptions">
-                <Form.Label>Menús (separados por coma)</Form.Label
+                <Form.Label>Menús (separados por coma)</Form.Label>
                 <Form.Control type="text" value={newMenuMoment.menuOptions} onChange={(e) => setNewMenuMoment({ ...newMenuMoment, menuOptions: e.target.value })} />
               </Form.Group>
             </Col>
@@ -245,7 +245,7 @@ const EventForm = () => {
         </>
       )}
 
-<Button type="submit" className="mt-3" disabled={isImageUploading || isSubmitting}>
+      <Button type="submit" className="mt-3" disabled={isImageUploading || isSubmitting}>
         {id ? 'Actualizar' : 'Crear'} Evento
       </Button>
 
@@ -257,3 +257,4 @@ const EventForm = () => {
 };
 
 export default EventForm;
+
