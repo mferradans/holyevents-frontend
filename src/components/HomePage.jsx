@@ -224,7 +224,7 @@ const filterEvents = () => {
                     className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}
                   >
                     <img
-                      src={event.coverImage ? `${API_URL}${event.coverImage}` : `${API_URL}/uploads/notfound.png`}
+                      src={event.coverImage ? event.coverImage: `${API_URL}/uploads/notfound.png`}
                       alt={event.name}
                       style={{ width: '100%' }}
                     />

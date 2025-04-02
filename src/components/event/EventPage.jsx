@@ -63,11 +63,12 @@ const EventPage = () => {
       <Row className="mt-5">
         {/* Columna izquierda: Detalles del evento */}
         <Col md={6} style={{ textAlign: 'left' }}>
-          <img
-            src={event.coverImage ? `${API_URL}${event.coverImage}` : `${API_URL}/uploads/notfound.png`}
-            alt={event.name}
-            style={{ width: '100%', maxWidth: '400px', borderRadius: '15px', objectFit: 'cover' }}
-          />
+        <img
+  src={event.coverImage ? event.coverImage : `${API_URL}/uploads/notfound.png`}
+  alt={event.name}
+  style={{ width: '100%', maxWidth: '400px', borderRadius: '15px', objectFit: 'cover' }}
+/>
+
           <h1>{event.name}</h1>
           <p><strong>Descripción:</strong> {event.description}</p>
           <p><strong>Ubicación:</strong> {event.location}</p>
