@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
+import FormData from 'form-data';
 
 const EventForm = () => {
   const { id } = useParams();
