@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, Button, Row, Col, Alert, ListGroup,Image } from 'react-bootstrap';
+import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
 
-const EventForm = ({ onSubmit }) => {
+const EventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -26,7 +26,6 @@ const EventForm = ({ onSubmit }) => {
   const [newMenuMoment, setNewMenuMoment] = useState({ dateTime: '', menuOptions: '' });
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (id) {
@@ -58,7 +57,7 @@ const EventForm = ({ onSubmit }) => {
 
       fetchEvent();
     }
-  }, [id]);
+  }, [id, API_URL]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,63 +80,41 @@ const EventForm = ({ onSubmit }) => {
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-  
-    if (!file) return; // Si no se seleccionó archivo, no hacer nada
-  
-    const maxSize = 3 * 1024 * 1024; // 📌 3MB en bytes
+
+    if (!file) return;
+
+    const maxSize = 3 * 1024 * 1024; // 3MB en bytes
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-  
-    // 📌 Validar el tipo de archivo
+
     if (!allowedTypes.includes(file.type)) {
       alert("Error: Solo se permiten imágenes en formato JPEG, JPG o PNG.");
       return;
     }
-  
-    // 📌 Validar tamaño de archivo
+
     if (file.size > maxSize) {
       alert("Error: La imagen es demasiado grande. El tamaño máximo permitido es de 3MB.");
       return;
     }
-  
-    // 📌 Validar dimensiones de la imagen usando FileReader
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    
-    reader.onload = (event) => {
-      const img = document.createElement("img"); // ✅ Usamos un elemento <img> en lugar de `new Image()`
-      img.src = event.target.result;
-  
-      img.onload = async () => {
-        const maxWidth = 2000; // 📌 Ancho máximo permitido
-        const maxHeight = 2000; // 📌 Alto máximo permitido
-  
-        if (img.width > maxWidth || img.height > maxHeight) {
-          alert(`Error: La imagen es demasiado grande en dimensiones. Máximo permitido: ${maxWidth}x${maxHeight}px.`);
-          return;
-        }
-  
-        // 📌 Si todo es válido, subir la imagen al servidor
-        const fileData = new FormData();
-        fileData.append("coverImage", file);
-  
-        try {
-          setIsImageUploading(true);
-          const response = await axios.post(`${API_URL}/api/events/upload`, fileData, { 
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          });
-          setFormData({ ...formData, coverImage: response.data.imageUrl, imageRemoved: false });
-          setIsImageUploading(false);
-        } catch (error) {
-          console.error("Error al cargar la imagen:", error);
-          alert("Hubo un error al subir la imagen. Inténtalo nuevamente.");
-          setIsImageUploading(false);
-        }
-      };
-    };
+
+    // Preparar datos para enviar al servidor
+    const fileData = new FormData();
+    fileData.append("coverImage", file);
+
+    try {
+      setIsImageUploading(true);
+      const response = await axios.post(`${API_URL}/api/events/upload`, fileData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      setFormData({ ...formData, coverImage: response.data.imageUrl, imageRemoved: false });
+      setIsImageUploading(false);
+    } catch (error) {
+      console.error("Error al cargar la imagen:", error);
+      alert("Hubo un error al subir la imagen. Inténtalo nuevamente.");
+      setIsImageUploading(false);
+    }
   };
-  
 
   const handleRemoveImage = () => {
     setFormData({ ...formData, coverImage: '', imageRemoved: true });
@@ -188,21 +165,15 @@ const EventForm = ({ onSubmit }) => {
         </Col>
       </Row>
       <Form.Group controlId="formDescription" className="mt-3">
-  <Form.Label>Descripción</Form.Label>
-  <Form.Control
-    as="textarea"
-    name="description"
-    value={formData.description}
-    onChange={handleChange}
-    required
-  />
-</Form.Group>
-<Form.Group controlId="formCoverImage" className="mt-3">
+        <Form.Label>Descripción</Form.Label>
+        <Form.Control as="textarea" name="description" value={formData.description} onChange={handleChange} required />
+      </Form.Group>
+      <Form.Group controlId="formCoverImage" className="mt-3">
         <Form.Label>Imagen de portada</Form.Label>
         <Form.Control type="file" onChange={handleFileChange} accept="image/*" />
         {formData.coverImage && (
           <div className="mt-2">
-        <Image src={`${API_URL}${formData.coverImage}`} alt="Vista previa" />
+            <Image src={formData.coverImage} alt="Vista previa" thumbnail />
             <Button variant="danger" size="sm" className="mt-2" onClick={handleRemoveImage}>Eliminar imagen</Button>
           </div>
         )}
@@ -221,7 +192,6 @@ const EventForm = ({ onSubmit }) => {
           </Form.Group>
         </Col>
       </Row>
-
       <Row className="mt-3">
         <Col md={6}>
           <Form.Group controlId="formStartDate">
@@ -236,8 +206,6 @@ const EventForm = ({ onSubmit }) => {
           </Form.Group>
         </Col>
       </Row>
-
-
       <Form.Group controlId="formHasMenu" className="mt-3 d-flex align-items-center">
         <Form.Check
           type="checkbox"
@@ -247,7 +215,6 @@ const EventForm = ({ onSubmit }) => {
           onChange={(e) => setFormData({ ...formData, hasMenu: e.target.checked })}
         />
       </Form.Group>
-
       {formData.hasMenu && (
         <>
           <h5 className="mt-3">Agregar Momentos de Comida</h5>
@@ -260,7 +227,7 @@ const EventForm = ({ onSubmit }) => {
             </Col>
             <Col md={5}>
               <Form.Group controlId="menuOptions">
-                <Form.Label>Menús (separados por coma)</Form.Label>
+                <Form.Label>Menús (separados por coma)</Form.Label
                 <Form.Control type="text" value={newMenuMoment.menuOptions} onChange={(e) => setNewMenuMoment({ ...newMenuMoment, menuOptions: e.target.value })} />
               </Form.Group>
             </Col>
