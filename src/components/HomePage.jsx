@@ -8,24 +8,24 @@ import Card from 'react-bootstrap/Card';
 import TransactionForm from './event/TransactionForm';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faUsers } from '@fortawesome/free-solid-svg-icons'; // Importamos iconos
+import { faCalendarAlt, faUsers } from '@fortawesome/free-solid-svg-icons';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
-  const [viewAvailable, setViewAvailable] = useState(true); // Estado para alternar entre disponibles y no disponibles
+  const [viewAvailable, setViewAvailable] = useState(true);
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(false);  // Nuevo estado para manejar la carga
+  const [loading, setLoading] = useState(false);
 
-  const eventsPerPage = 3; // Cantidad de eventos por página
-  const [currentPage, setCurrentPage] = useState(1); // Página actual
+  const eventsPerPage = 3;
+  const [currentPage, setCurrentPage] = useState(1);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   const fetchEvents = async () => {
-    setLoading(true);  // Iniciar la carga
+    setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/events`);
       const eventsWithTransactionCount = await Promise.all(response.data.map(async (event) => {
@@ -34,10 +34,10 @@ const HomePage = () => {
         return { ...event, transactionCount };
       }));
       setEvents(eventsWithTransactionCount);
-      setLoading(false);  // Finalizar la carga
+      setLoading(false);
     } catch (error) {
       console.error('Error al obtener los eventos:', error);
-      setLoading(false);  // Finalizar la carga en caso de error
+      setLoading(false);
     }
   };
 
@@ -57,18 +57,19 @@ const HomePage = () => {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPage(currentPage => currentPage); // Forzar la actualización
-    }, 30000); // Actualizar cada 30 segundos para revisar
+      setCurrentPage(currentPage => currentPage);
+    }, 30000);
   
-    return () => clearInterval(interval); // Limpiar el intervalo al desmontar
+    return () => clearInterval(interval);
   }, []);
 
-  // Agregué este bloque condicional para mostrar el spinner o mensaje de carga
+
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <p>Cargando eventos, por favor espera...</p>
-      {/* Aquí podrías incluir un componente de spinner si prefieres */}
-    </div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div className="spinner"></div> {/* Spinner agregado aquí */}
+      </div>
+    );
   }
 
   const getWarningMessage = (event) => {
