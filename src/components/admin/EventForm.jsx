@@ -174,7 +174,12 @@ const EventForm = () => {
         <Form.Control type="file" onChange={handleFileChange} accept="image/*" />
         {formData.coverImage && (
           <div className="mt-2">
-            <Image src={formData.coverImage} alt="Vista previa" thumbnail />
+            <Image
+              src={formData.coverImage}
+              alt="Vista previa"
+              thumbnail
+              style={{ maxWidth: '200px', height: 'auto' }} 
+            />
             <Button variant="danger" size="sm" className="mt-2" onClick={handleRemoveImage}>Eliminar imagen</Button>
           </div>
         )}

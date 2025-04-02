@@ -6,6 +6,7 @@ import '../App.css';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import TransactionForm from './event/TransactionForm';
+import Spinner from './spinner/Spinner';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faUsers } from '@fortawesome/free-solid-svg-icons'; // Importamos iconos
@@ -18,6 +19,8 @@ const HomePage = () => {
   const [viewAvailable, setViewAvailable] = useState(true); // Estado para alternar entre disponibles y no disponibles
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true); // Nuevo estado para la carga
+  const [errorMessage, setErrorMessage] = useState(''); // Manejar mensajes de error o de carga prolongada
 
   const eventsPerPage = 3; // Cantidad de eventos por página
   const [currentPage, setCurrentPage] = useState(1); // Página actual
@@ -40,7 +43,23 @@ const HomePage = () => {
   const handleSelectEvent = (event) => {
     navigate(`/event/${event._id}`);
   };
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/events`);
+        setEvents(response.data);
+        setLoading(false); // Desactivar la carga cuando los datos estén listos
+      } catch (error) {
+        console.error('Error al obtener los eventos:', error);
+        setLoading(false); // Desactivar la carga incluso si hay un error
+      }
+    };
+    fetchEvents();
+  }, []);
 
+  if (loading) {
+    return <Spinner />; // Muestra el spinner mientras los eventos están cargando
+  }
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -199,140 +218,88 @@ const filterEvents = () => {
         </button>
       </div>
   
-      {!selectedEvent ? (
-        filteredEvents.length > 0 ? ( // Verificar si hay eventos filtrados
-          <div className="pagination-container">
-            {/* Flecha Izquierda */}
-            {currentPage > 1 && (
-              <button
-                className="prev-arrow"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                &#10094; {/* Flecha izquierda */}
-              </button>
-            )}
-  
-            <div className="card-product-container">
-              {currentEvents.map((event) => {
-                const blockStatus = isEventBlocked(event);
-                const warningData = getWarningMessage(event);
-  
-                return (
-                  <div
-                    key={event._id}
-                    className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}
-                  >
-                    <img
-                      src={event.coverImage ? event.coverImage: `${API_URL}/uploads/notfound.png`}
-                      alt={event.name}
-                      style={{ width: '100%' }}
-                    />
-                    <h3>{event.name}</h3>
-  
-                    {/* Mostrar iconos de advertencia si hay warning */}
-                    {warningData && warningData.warnings && (
-                      <div className="warning-icon-wrapper">
-                        {warningData.warnings.map((warning, index) => {
-                          const isSevere = warning.severity === 'severe';
-  
-                          // Mostrar icono de calendario para advertencias de cierre de compra
-                          if (warning.type === 'cierre') {
-                            return (
-                              <div key={index} className="warning-icon-container">
-                                <FontAwesomeIcon
-                                  icon={faCalendarAlt}
-                                  className={`warning-icon ${isSevere ? 'warning-severe-icon' : 'warning-mild-icon'}`}
-                                />
-                                <span className="tooltip-text">{warning.message}</span>
-                              </div>
-                            );
-                          }
-  
-                          // Mostrar icono de cupos para advertencias de capacidad
-                          if (warning.type === 'cupos') {
-                            return (
-                              <div key={index} className="warning-icon-container">
-                                <FontAwesomeIcon
-                                  icon={faUsers}
-                                  className={`warning-icon ${isSevere ? 'warning-severe-icon' : 'warning-mild-icon'}`}
-                                />
-                                <span className="tooltip-text">{warning.message}</span>
-                              </div>
-                            );
-                          }
-  
-                          return null;
-                        })}
-                      </div>
-                    )}
-  
-                    {/* Solo abreviar la descripción */}
-                    <p>{event.description.length > 25 ? `${event.description.substring(0, 25)}...` : event.description}</p>
-  
-                    {/* Resto de los textos completos */}
-                    <p>
-                      <strong>Inicio: </strong>
-                      {event.startDate
-                        ? new Date(event.startDate).toLocaleDateString('en-GB', {
-                            timeZone: 'UTC',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                        : 'Fecha no disponible'}
-                    </p>
-                    <p><strong>Precio:</strong> ${event.price}</p>
-                    <p><strong>Capacidad:</strong> {event.capacity}</p>
-                    <p><strong>Ubicación:</strong> {event.location}</p>
-                    <p>
-                      <strong>Cierre de compra: </strong>
-                      {event.endPurchaseDate
-                        ? new Date(event.endPurchaseDate).toLocaleDateString('en-GB', {
-                            timeZone: 'UTC',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                        : 'Fecha no disponible'}
-                    </p>
-                    {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.reason}</strong></p>}
-  
-                    <button
-                      className="button"
-                      onClick={() => handleSelectEvent(event)}
-                      disabled={blockStatus.blocked}
-                      style={{ backgroundColor: blockStatus.blocked ? 'gray' : '#007bff', cursor: blockStatus.blocked ? 'not-allowed' : 'pointer' }}
-                    >
-                      {blockStatus.blocked ? blockStatus.message : 'Seleccionar Evento'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-  
-            {/* Flecha Derecha */}
-            {currentPage < Math.ceil(filteredEvents.length / 3) && currentEvents.length === 3
- && ( // Condición para no avanzar si no hay más eventos
-              <button
-                className="next-arrow"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentEvents.length === 0 || currentPage === Math.ceil(filteredEvents.length / currentEvents.length)}
-              >
-                &#10095; {/* Flecha derecha */}
-              </button>
-            )}
-          </div>
-        ) : (
-          <p>No encontramos nada...</p> // Mensaje si no hay eventos
-        )
+      {loading ? (
+        <Spinner /> // Aquí se muestra el Spinner mientras los eventos están cargando
+      ) : !events.length ? (
+        <p>No hay eventos disponibles en este momento.</p> // Mensaje si no hay eventos
       ) : (
-        <div>
-          <TransactionForm event={selectedEvent} />
+        <div className="pagination-container">
+          {currentPage > 1 && (
+            <button
+              className="prev-arrow"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              &#10094;
+            </button>
+          )}
+  
+          <div className="card-product-container">
+            {currentEvents.map((event) => {
+              const blockStatus = isEventBlocked(event);
+              const warningData = getWarningMessage(event);
+  
+              return (
+                <div
+                  key={event._id}
+                  className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}
+                >
+                  <img
+                    src={event.coverImage ? event.coverImage : `${API_URL}/uploads/notfound.png`}
+                    alt={event.name}
+                    style={{ width: '100%' }}
+                  />
+                  <h3>{event.name}</h3>
+                  {warningData && warningData.warnings && (
+                    <div className="warning-icon-wrapper">
+                      {warningData.warnings.map((warning, index) => {
+                        const isSevere = warning.severity === 'severe';
+                        return (
+                          <div key={index} className="warning-icon-container">
+                            <FontAwesomeIcon
+                              icon={warning.type === 'cierre' ? faCalendarAlt : faUsers}
+                              className={`warning-icon ${isSevere ? 'warning-severe-icon' : 'warning-mild-icon'}`}
+                            />
+                            <span className="tooltip-text">{warning.message}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p>{event.description.length > 25 ? `${event.description.substring(0, 25)}...` : event.description}</p>
+                  <p><strong>Inicio:</strong> {new Date(event.startDate).toLocaleDateString()}</p>
+                  <p><strong>Precio:</strong> ${event.price}</p>
+                  <p><strong>Capacidad:</strong> {event.capacity}</p>
+                  <p><strong>Ubicación:</strong> {event.location}</p>
+                  <p><strong>Cierre de compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString()}</p>
+                  {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.reason}</strong></p>}
+                  <button
+                    className="button"
+                    onClick={() => handleSelectEvent(event)}
+                    disabled={blockStatus.blocked}
+                    style={{ backgroundColor: blockStatus.blocked ? 'gray' : '#007bff', cursor: blockStatus.blocked ? 'not-allowed' : 'pointer' }}
+                  >
+                    {blockStatus.blocked ? blockStatus.message : 'Seleccionar Evento'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+  
+          {currentPage < Math.ceil(filteredEvents.length / eventsPerPage) && (
+            <button
+              className="next-arrow"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentEvents.length === 0 || currentPage === Math.ceil(filteredEvents.length / currentEvents.length)}
+            >
+              &#10095;
+            </button>
+          )}
         </div>
       )}
     </div>
   );
+  
   
   
 };
