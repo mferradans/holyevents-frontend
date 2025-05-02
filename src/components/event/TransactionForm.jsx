@@ -114,6 +114,32 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
           )}
         </Button>
   
+        {/* Botón WhatsApp */}
+        <Button
+          variant="outline-success"
+          className="mt-3 w-100"
+          disabled={!isFormValid()}
+          onClick={() => {
+            const { name, lastName, email, tel, selectedMenus } = formData;
+  
+            const menuText = event.hasMenu && event.menuMoments.length > 0
+              ? Object.entries(selectedMenus).map(([key, value]) =>
+                  `• ${new Date(event.menuMoments[key].dateTime).toLocaleString()}: ${value}`
+                ).join('\n')
+              : 'Sin menú';
+  
+            const message = encodeURIComponent(
+              `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
+              `Nombre: ${name} ${lastName}\nEmail: ${email}\nTeléfono: ${tel}\n\n` +
+              `Menús seleccionados:\n${menuText}`
+            );
+  
+            const phone = "5493534219889";
+            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+          }}
+        >
+          Pagar con Transferencia / Efectivo
+        </Button>
       </Form>
     </div>
   );

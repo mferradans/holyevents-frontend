@@ -98,41 +98,7 @@ const EventPage = () => {
         <Col md={6}>
           <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={formData => setFormData(formData)} />
   
-          <div style={{ marginTop: '20px' }}>
-            {/* Botón de Mercado Pago */}
-            {preferenceId && (
-              <Wallet initialization={{ preferenceId: preferenceId }} />
-            )}
-  
-            {/* Botón de WhatsApp */}
-            {formData && formData.name && formData.lastName && formData.email && formData.tel && (!event.hasMenu || event.menuMoments.every((_, i) => formData.selectedMenus?.[i])) ? (
-              <Button
-                variant="outline-success"
-                className="mt-3 w-100"
-                onClick={() => {
-                  const menuText = event.hasMenu && event.menuMoments.length > 0
-                    ? Object.entries(formData.selectedMenus).map(([key, value]) =>
-                        `• ${new Date(event.menuMoments[key].dateTime).toLocaleString()}: ${value}`
-                      ).join('\n')
-                    : 'Sin menú';
-  
-                  const message = encodeURIComponent(
-                    `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
-                    `Nombre: ${formData.name} ${formData.lastName}\nEmail: ${formData.email}\nTeléfono: ${formData.tel}\n\n` +
-                    `Menús seleccionados:\n${menuText}`
-                  );
-  
-                  window.open(`https://wa.me/5493534219889?text=${message}`, '_blank');
-                }}
-              >
-                💸 Pagar con Transferencia / Efectivo
-              </Button>
-            ) : (
-              <Button className="mt-3 w-100" variant="secondary" disabled>
-                Complete todos los datos para pagar por Transferencia / Efectivo
-              </Button>
-            )}
-          </div>
+
         </Col>
       </Row>
     </Container>
