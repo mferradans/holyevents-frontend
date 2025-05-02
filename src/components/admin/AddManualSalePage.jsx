@@ -27,7 +27,7 @@ const AddManualSalePage = () => {
         });
         setEvent(res.data);
       } catch (error) {
-        console.error("Error al obtener el evento:", error);
+        console.error("❌ Error al obtener el evento:", error);
       }
     };
 
@@ -36,7 +36,9 @@ const AddManualSalePage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    console.log("📥 Cambio de input:", name, "→", value);
   };
 
   const handleMenuSelection = (momentDateTime, value) => {
@@ -48,25 +50,31 @@ const AddManualSalePage = () => {
       }
     };
     setFormData(updated);
-    formDataExternal && formDataExternal(updated);
+    console.log("📥 Selección de menú:", momentDateTime, "→", value);
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+
+    const payload = {
+      ...formData,
+      metadataType: 'manual',
+      eventId
+    };
+
+    console.log("📤 Enviando venta manual:", payload);
+
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/events/${eventId}/manual-sale`, {
-        ...formData,
-        metadataType: 'manual',
-        eventId
-      }, {
+      await axios.post(`${API_URL}/api/events/${eventId}/manual-sale`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      console.log("✅ Venta manual guardada correctamente.");
       navigate(`/admin/events/${eventId}/sales`);
     } catch (error) {
-      console.error("Error al guardar la venta manual:", error);
+      console.error("❌ Error al guardar la venta manual:", error.response?.data || error.message);
       alert("Error al guardar la venta manual.");
     } finally {
       setIsLoading(false);
@@ -108,22 +116,20 @@ const AddManualSalePage = () => {
           <>
             <h5 className="mt-4">Seleccionar Menús:</h5>
             {event.menuMoments.map((moment, index) => (
-  <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
-    <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
-    <Form.Control
-      as="select"
-      value={formData.selectedMenus[moment.dateTime] || ''}
-      onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
-      required
-    >
-      <option value="">Seleccione una opción</option>
-      {moment.menuOptions.map((menu, menuIndex) => (
-        <option key={menuIndex} value={menu}>{menu}</option>
-      ))}
-    </Form.Control>
-  </Form.Group>
-))}
-
+              <Form.Group key={index} className="mt-2">
+                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+                <Form.Select
+                  value={formData.selectedMenus[moment.dateTime] || ''}
+                  onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
+                  required
+                >
+                  <option value="">Seleccionar menú</option>
+                  {moment.menuOptions.map((option, i) => (
+                    <option key={i} value={option}>{option}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            ))}
           </>
         )}
 
