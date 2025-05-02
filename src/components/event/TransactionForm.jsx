@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 
-const TransactionForm = ({ event, onSubmit, preferenceId, setPreferenceId }) => {
+const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -12,17 +12,26 @@ const TransactionForm = ({ event, onSubmit, preferenceId, setPreferenceId }) => 
   });
 
   const [isLoading, setIsLoading] = useState(false);
-
+  useEffect(() => {
+    if (formDataExternal) {
+      formDataExternal(formData);
+    }
+  }, [formData, formDataExternal]);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    formDataExternal && formDataExternal(updated);
   };
-
+  
   const handleMenuSelection = (momentIndex, value) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      selectedMenus: { ...prevData.selectedMenus, [momentIndex]: value },
-    }));
+    const updated = {
+      ...formData,
+      selectedMenus: { ...formData.selectedMenus, [momentIndex]: value }
+    };
+    setFormData(updated);
+    formDataExternal && formDataExternal(updated);
   };
 
   const handleSubmit = async (e) => {
@@ -48,6 +57,7 @@ const TransactionForm = ({ event, onSubmit, preferenceId, setPreferenceId }) => 
     }
     return true;
   };
+  
   
   return (
     <div>
@@ -133,6 +143,7 @@ const TransactionForm = ({ event, onSubmit, preferenceId, setPreferenceId }) => 
       </Form>
     </div>
   );
+  
   
 };
 
