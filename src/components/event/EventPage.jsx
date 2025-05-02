@@ -96,24 +96,8 @@ const EventPage = () => {
 
         {/* Columna derecha: Formulario de compra */}
         <Col md={6}>
-          <TransactionForm event={event} onSubmit={handleFormSubmit} />
-          <div style={{ marginTop: '20px' }}>
-            {preferenceId && (
-              <Wallet initialization={{ preferenceId: preferenceId }} />
-            )}
+        <TransactionForm event={event} onSubmit={handleFormSubmit} preferenceId={preferenceId} />
 
-            <Button
-              variant="outline-success"
-              className="mt-3 w-100"
-              onClick={() => {
-                const message = encodeURIComponent(`Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.`);
-                const phone = "5493534219889"; // reemplazá con tu número
-                window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-              }}
-            >
-              Pagar con Transferencia / Efectivo
-            </Button>
-          </div>
         </Col>
       </Row>
     </Container>

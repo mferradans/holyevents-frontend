@@ -39,21 +39,22 @@ const TransactionForm = ({ event, onSubmit }) => {
           <Form.Label>Nombre:</Form.Label>
           <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
         </Form.Group>
-
+  
         <Form.Group controlId="formLastName" className="mt-3">
           <Form.Label>Apellido:</Form.Label>
           <Form.Control type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
         </Form.Group>
-
+  
         <Form.Group controlId="formEmail" className="mt-3">
           <Form.Label>Email:</Form.Label>
           <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
-        </Form.Group>        
+        </Form.Group>
+  
         <Form.Group controlId="formTel" className="mt-3">
           <Form.Label>Teléfono:</Form.Label>
           <Form.Control type="text" name="tel" value={formData.tel} onChange={handleChange} required />
         </Form.Group>
-
+  
         {event.hasMenu && event.menuMoments.length > 0 && (
           <>
             <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
@@ -75,13 +76,34 @@ const TransactionForm = ({ event, onSubmit }) => {
             ))}
           </>
         )}
-
-<Button className="mt-3 w-100" variant="primary" type="submit" disabled={isLoading}>
+  
+        <Button className="mt-3 w-100" variant="primary" type="submit" disabled={isLoading}>
           {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Continuar al Pago'}
         </Button>
+  
+        {formData.name && formData.lastName && formData.email && formData.tel ? (
+          <Button
+            variant="outline-success"
+            className="mt-3 w-100"
+            onClick={() => {
+              const message = encodeURIComponent(
+                `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\nNombre: ${formData.name} ${formData.lastName}\nEmail: ${formData.email}\nTeléfono: ${formData.tel}`
+              );
+              const phone = "5493534219889";
+              window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+            }}
+          >
+            Pagar con Transferencia / Efectivo
+          </Button>
+        ) : (
+          <Button variant="secondary" className="mt-3 w-100" disabled>
+            Complete todos los datos para pagar por Transferencia / Efectivo
+          </Button>
+        )}
       </Form>
     </div>
   );
+  
 };
 
 export default TransactionForm;
