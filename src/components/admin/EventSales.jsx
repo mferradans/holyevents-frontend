@@ -46,6 +46,13 @@ const EventSales = () => {
       >
         Volver al Dashboard
       </Button>
+      <Button 
+  variant="success" 
+  className="mb-3 mx-2"
+  onClick={() => navigate(`/admin/events/${eventId}/add-manual-sale`)}
+>
+  Añadir Venta Manual
+</Button>
 
       {/* Buscador en tiempo real */}
       <Form.Group className="mb-3">
@@ -59,16 +66,18 @@ const EventSales = () => {
 
       {/* Tabla de ventas */}
       <Table striped bordered hover variant="dark">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Fecha de Compra</th>
-            <th>Menús Seleccionados</th>
-          </tr>
-        </thead>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Fecha de Compra</th>
+          <th>Menús Seleccionados</th>
+          <th>Tipo</th> {/* Nuevo */}
+        </tr>
+      </thead>
+
         <tbody>
           {filteredSales.length > 0 ? (
             filteredSales.map((sale) => (
@@ -87,6 +96,8 @@ const EventSales = () => {
                     ))}
                   </ul>
                 </td>
+                <td>{sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}</td>
+
               </tr>
             ))
           ) : (

@@ -16,7 +16,7 @@ import './App.css';
 import Navbar from './components/Navbar'; 
 import VerificationResult from './components/VerificationResult';
 import EventSales from './components/admin/EventSales'; // Asegúrate de importar el componente
-
+import AddManualSalePage from './components/admin/AddManualSalePage';
 
 function App() {
   // Inicializar Mercado Pago
@@ -38,6 +38,8 @@ function App() {
         <Route path="/payment_pending" element={<PaymentPending />} />
         <Route path="/verification_result" element={<VerificationResult />} />
         <Route path="/admin/event/:eventId/sales" element={<EventSales />} />
+        <Route path="/admin/events/:eventId/add-manual-sale" element={<AddManualSalePage />} />
+
 
       </Routes>
     </Router>
