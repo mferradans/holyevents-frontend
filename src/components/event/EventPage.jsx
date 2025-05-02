@@ -96,8 +96,12 @@ const EventPage = () => {
 
         {/* Columna derecha: Formulario de compra */}
         <Col md={6}>
-        <TransactionForm event={event} onSubmit={handleFormSubmit} preferenceId={preferenceId} />
-
+        <TransactionForm
+          event={event}
+          onSubmit={handleFormSubmit}
+          preferenceId={preferenceId}
+          setPreferenceId={setPreferenceId}
+        />
         </Col>
       </Row>
     </Container>

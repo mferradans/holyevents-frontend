@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 
-const TransactionForm = ({ event, onSubmit }) => {
+const TransactionForm = ({ event, onSubmit, preferenceId, setPreferenceId }) => {
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -25,11 +25,22 @@ const TransactionForm = ({ event, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    onSubmit(formData).finally(() => setIsLoading(false));
+  
+    try {
+      const preferenceId = await onSubmit(formData);
+      if (setPreferenceId) {
+        setPreferenceId(preferenceId); // ✅ vuelve a activar el Wallet
+      }
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+  
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
     if (event.hasMenu && event.menuMoments.length > 0) {
