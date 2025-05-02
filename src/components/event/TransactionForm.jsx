@@ -30,7 +30,14 @@ const TransactionForm = ({ event, onSubmit }) => {
     setIsLoading(true);
     onSubmit(formData).finally(() => setIsLoading(false));
   };
-
+  const isFormValid = () => {
+    if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
+    if (event.hasMenu && event.menuMoments.length > 0) {
+      return event.menuMoments.every((_, index) => !!formData.selectedMenus[index]);
+    }
+    return true;
+  };
+  
   return (
     <div>
       <h2>Compra de ticket:</h2>
@@ -77,29 +84,41 @@ const TransactionForm = ({ event, onSubmit }) => {
           </>
         )}
   
-        <Button className="mt-3 w-100" variant="primary" type="submit" disabled={isLoading}>
-          {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : 'Continuar al Pago'}
+        {/* Botón Mercado Pago */}
+        <Button className="mt-3 w-100" variant="primary" type="submit" disabled={!isFormValid() || isLoading}>
+          {isLoading ? (
+            <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+          ) : (
+            'Continuar al Pago'
+          )}
         </Button>
   
-        {formData.name && formData.lastName && formData.email && formData.tel ? (
-          <Button
-            variant="outline-success"
-            className="mt-3 w-100"
-            onClick={() => {
-              const message = encodeURIComponent(
-                `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\nNombre: ${formData.name} ${formData.lastName}\nEmail: ${formData.email}\nTeléfono: ${formData.tel}`
-              );
-              const phone = "5493534219889";
-              window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-            }}
-          >
-            Pagar con Transferencia / Efectivo
-          </Button>
-        ) : (
-          <Button variant="secondary" className="mt-3 w-100" disabled>
-            Complete todos los datos para pagar por Transferencia / Efectivo
-          </Button>
-        )}
+        {/* Botón WhatsApp */}
+        <Button
+          variant="outline-success"
+          className="mt-3 w-100"
+          disabled={!isFormValid()}
+          onClick={() => {
+            const { name, lastName, email, tel, selectedMenus } = formData;
+  
+            const menuText = event.hasMenu && event.menuMoments.length > 0
+              ? Object.entries(selectedMenus).map(([key, value]) =>
+                  `• ${new Date(event.menuMoments[key].dateTime).toLocaleString()}: ${value}`
+                ).join('\n')
+              : 'Sin menú';
+  
+            const message = encodeURIComponent(
+              `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
+              `Nombre: ${name} ${lastName}\nEmail: ${email}\nTeléfono: ${tel}\n\n` +
+              `Menús seleccionados:\n${menuText}`
+            );
+  
+            const phone = "5493534219889";
+            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+          }}
+        >
+          Pagar con Transferencia / Efectivo
+        </Button>
       </Form>
     </div>
   );
