@@ -25,14 +25,18 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
     formDataExternal && formDataExternal(updated);
   };
   
-  const handleMenuSelection = (momentIndex, value) => {
+  const handleMenuSelection = (momentDateTime, value) => {
     const updated = {
       ...formData,
-      selectedMenus: { ...formData.selectedMenus, [momentIndex]: value }
+      selectedMenus: {
+        ...formData.selectedMenus,
+        [momentDateTime]: value
+      }
     };
     setFormData(updated);
     formDataExternal && formDataExternal(updated);
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,21 +91,22 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
           <>
             <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
             {event.menuMoments.map((moment, index) => (
-              <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
-                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
-                <Form.Control
-                  as="select"
-                  value={formData.selectedMenus[index] || ''}
-                  onChange={(e) => handleMenuSelection(index, e.target.value)}
-                  required
-                >
-                  <option value="">Seleccione una opción</option>
-                  {moment.menuOptions.map((menu, menuIndex) => (
-                    <option key={menuIndex} value={menu}>{menu}</option>
-                  ))}
-                </Form.Control>
-              </Form.Group>
-            ))}
+            <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
+              <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+              <Form.Control
+                as="select"
+                value={formData.selectedMenus[moment.dateTime] || ''}
+                onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
+                required
+              >
+                <option value="">Seleccione una opción</option>
+                {moment.menuOptions.map((menu, menuIndex) => (
+                  <option key={menuIndex} value={menu}>{menu}</option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+          ))}
+
           </>
         )}
   

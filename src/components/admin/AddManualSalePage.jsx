@@ -39,15 +39,18 @@ const AddManualSalePage = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleMenuSelection = (index, value) => {
-    setFormData(prev => ({
-      ...prev,
+  const handleMenuSelection = (momentDateTime, value) => {
+    const updated = {
+      ...formData,
       selectedMenus: {
-        ...prev.selectedMenus,
-        [index]: value
+        ...formData.selectedMenus,
+        [momentDateTime]: value
       }
-    }));
+    };
+    setFormData(updated);
+    formDataExternal && formDataExternal(updated);
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -105,20 +108,22 @@ const AddManualSalePage = () => {
           <>
             <h5 className="mt-4">Seleccionar Menús:</h5>
             {event.menuMoments.map((moment, index) => (
-              <Form.Group key={index} className="mt-2">
-                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
-                <Form.Select
-                  value={formData.selectedMenus[index] || ''}
-                  onChange={(e) => handleMenuSelection(index, e.target.value)}
-                  required
-                >
-                  <option value="">Seleccionar menú</option>
-                  {moment.menuOptions.map((option, i) => (
-                    <option key={i} value={option}>{option}</option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            ))}
+  <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
+    <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+    <Form.Control
+      as="select"
+      value={formData.selectedMenus[moment.dateTime] || ''}
+      onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
+      required
+    >
+      <option value="">Seleccione una opción</option>
+      {moment.menuOptions.map((menu, menuIndex) => (
+        <option key={menuIndex} value={menu}>{menu}</option>
+      ))}
+    </Form.Control>
+  </Form.Group>
+))}
+
           </>
         )}
 
