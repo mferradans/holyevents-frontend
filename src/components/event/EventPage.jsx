@@ -78,17 +78,19 @@ const EventPage = () => {
           <p><strong>Precio:</strong> ${event.price}</p>
 
           {event.hasMenu && event.menuMoments.length > 0 && (
-            <div>
-              <h5>Momentos de comida:</h5>
-              <ul>
-                {event.menuMoments.map((moment, index) => (
-                  <li key={index}>
-                    <strong>{new Date(moment.dateTime).toLocaleString()}</strong>: {moment.menuOptions.join(', ')}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+  <p>
+    <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong>{' '}
+    ({event.menuMoments.map((moment, i) =>
+      new Date(moment.dateTime).toLocaleString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    ).join(', ')})
+  </p>
+)}
+
         </Col>
 
         {/* Columna derecha: Formulario de compra */}
