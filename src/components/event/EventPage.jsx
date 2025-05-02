@@ -98,7 +98,14 @@ const EventPage = () => {
         <Col md={6}>
           <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={formData => setFormData(formData)} />
   
-
+          <div style={{ marginTop: '20px' }}>
+            {/* Botón de Mercado Pago */}
+            {preferenceId && (
+              <Wallet initialization={{ preferenceId: preferenceId }} />
+            )}
+  
+           
+          </div>
         </Col>
       </Row>
     </Container>
