@@ -5,6 +5,7 @@ import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 
 const EventPage = () => {
   const { id } = useParams();
