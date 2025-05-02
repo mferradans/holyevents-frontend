@@ -72,7 +72,7 @@ const AddManualSalePage = () => {
       });
 
       console.log("✅ Venta manual guardada correctamente.");
-      navigate(`/admin/events/${eventId}/sales`);
+      navigate(`/admin/event/${eventId}/sales`);
     } catch (error) {
       console.error("❌ Error al guardar la venta manual:", error.response?.data || error.message);
       alert("Error al guardar la venta manual.");

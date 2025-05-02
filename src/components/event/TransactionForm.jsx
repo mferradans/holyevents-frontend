@@ -56,11 +56,16 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
   
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
+  
     if (event.hasMenu && event.menuMoments.length > 0) {
-      return event.menuMoments.every((_, index) => !!formData.selectedMenus[index]);
+      return event.menuMoments.every((moment) => {
+        return !!formData.selectedMenus[moment.dateTime];
+      });
     }
+  
     return true;
   };
+  
   
   
   return (
