@@ -11,13 +11,33 @@ const SuccessPage = () => {
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   const queryParams = new URLSearchParams(location.search);
-  const transactionId = queryParams.get('transactionId');
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
-    if (!transactionId) {
+    const paymentId = queryParams.get('payment_id');
+    if (!paymentId) {
       navigate('/');
+      return;
     }
-  }, [transactionId, navigate]);
+  
+    const fetchTransaction = async () => {
+      try {
+        const res = await fetch(`${API_URL}/get_transaction?paymentId=${paymentId}`);
+        const data = await res.json();
+        if (data.transactionId) {
+          setTransactionId(data.transactionId);
+        } else {
+          navigate('/');
+        }
+      } catch (err) {
+        console.error("❌ Error al obtener transactionId:", err);
+        navigate('/');
+      }
+    };
+  
+    fetchTransaction();
+  }, [navigate]);
+  
 
   const handleDownload = () => {
     window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
