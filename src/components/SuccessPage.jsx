@@ -14,11 +14,16 @@ const SuccessPage = () => {
   const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
-    const paymentId = queryParams.get('payment_id');
-    if (!paymentId) {
+    const transactionIdParam = queryParams.get('transactionId');
+  
+    if (!transactionIdParam) {
       navigate('/');
       return;
     }
+  
+    setTransactionId(transactionIdParam);
+  }, [navigate]);
+  
   
     const fetchTransaction = async () => {
       try {
