@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Container, Alert } from 'react-bootstrap';
 import Confetti from 'react-confetti'; // Solo si decides agregar confeti
