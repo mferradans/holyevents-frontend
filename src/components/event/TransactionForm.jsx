@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 
@@ -12,23 +12,14 @@ const TransactionForm = ({ event, onSubmit }) => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-/*
-  useEffect(() => {
-    if (formDataExternal) {
-      formDataExternal(formData);
-    }
-  }, [formData, formDataExternal]);
-  
-  */
- 
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
     setFormData(updated);
-    formDataExternal && formDataExternal(updated);
   };
-  
-    const handleMenuSelection = (momentDateTime, value) => {
+
+  const handleMenuSelection = (momentDateTime, value) => {
     const updatedMenus = {
       ...formData.selectedMenus,
       [momentDateTime]: value,
@@ -42,7 +33,6 @@ const TransactionForm = ({ event, onSubmit }) => {
     console.log(`🍽️ Menú seleccionado para ${momentDateTime}: ${value}`);
     setFormData(updated);
   };
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +54,7 @@ const TransactionForm = ({ event, onSubmit }) => {
       setIsLoading(false);
     }
   };
-  
+
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
 
@@ -76,8 +66,7 @@ const TransactionForm = ({ event, onSubmit }) => {
 
     return true;
   };
-  
-  
+
   return (
     <div>
       <h2>Compra de ticket:</h2>
@@ -140,9 +129,13 @@ const TransactionForm = ({ event, onSubmit }) => {
             const { name, lastName, email, tel, selectedMenus } = formData;
 
             const menuText = event.hasMenu && event.menuMoments.length > 0
-              ? Object.entries(selectedMenus).map(([key, value]) =>
-                  `• ${new Date(key).toLocaleString()}: ${value}`
-                ).join('\n')
+              ? Object.entries(selectedMenus).map(([key, value]) => {
+                  const fixedDate = key.replace('_t', 'T').replace('_z', 'Z');
+                  const readable = isNaN(new Date(fixedDate))
+                    ? `Fecha inválida`
+                    : new Date(fixedDate).toLocaleString();
+                  return `• ${readable}: ${value}`;
+                }).join('\n')
               : 'Sin menú';
 
             const message = encodeURIComponent(
