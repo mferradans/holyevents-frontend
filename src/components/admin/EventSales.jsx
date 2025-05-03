@@ -28,7 +28,6 @@ const EventSales = () => {
     }
   };
 
-  // Filtrado en tiempo real por nombre o apellido
   const filteredSales = sales.filter(sale => {
     const fullName = `${sale.name} ${sale.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase().trim());
@@ -38,7 +37,6 @@ const EventSales = () => {
     <Container>
       <h2 className="my-4 text-white">Ventas del Evento: {eventName}</h2>
 
-      {/* Botón para volver al Dashboard */}
       <Button 
         variant="outline-light" 
         className="mb-3"
@@ -47,14 +45,13 @@ const EventSales = () => {
         Volver al Dashboard
       </Button>
       <Button 
-  variant="success" 
-  className="mb-3 mx-2"
-  onClick={() => navigate(`/admin/events/${eventId}/add-manual-sale`)}
->
-  Añadir Venta Manual
-</Button>
+        variant="success" 
+        className="mb-3 mx-2"
+        onClick={() => navigate(`/admin/events/${eventId}/add-manual-sale`)}
+      >
+        Añadir Venta Manual
+      </Button>
 
-      {/* Buscador en tiempo real */}
       <Form.Group className="mb-3">
         <Form.Control
           type="text"
@@ -64,20 +61,18 @@ const EventSales = () => {
         />
       </Form.Group>
 
-      {/* Tabla de ventas */}
       <Table striped bordered hover variant="dark">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Email</th>
-          <th>Teléfono</th>
-          <th>Fecha de Compra</th>
-          <th>Menús Seleccionados</th>
-          <th>Tipo</th> {/* Nuevo */}
-        </tr>
-      </thead>
-
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Fecha de Compra</th>
+            <th>Menús Seleccionados</th>
+            <th>Tipo</th>
+          </tr>
+        </thead>
         <tbody>
           {filteredSales.length > 0 ? (
             filteredSales.map((sale) => (
@@ -89,20 +84,23 @@ const EventSales = () => {
                 <td>{new Date(sale.transactionDate).toLocaleDateString('es-AR')}</td>
                 <td>
                   <ul>
-                    {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => (
-                      <li key={moment}>
-                        {new Date(moment).toLocaleString()}: {menu}
-                      </li>
-                    ))}
+                    {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => {
+                      const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
+                      const date = new Date(fixedMoment);
+                      return (
+                        <li key={moment}>
+                          {isNaN(date) ? 'Fecha inválida' : `${date.toLocaleString('es-AR')}: ${menu}`}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </td>
                 <td>{sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}</td>
-
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="text-center">No hay ventas registradas para este evento.</td>
+              <td colSpan="7" className="text-center">No hay ventas registradas para este evento.</td>
             </tr>
           )}
         </tbody>
