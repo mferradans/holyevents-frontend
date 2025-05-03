@@ -2,22 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 
-const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
+const TransactionForm = ({ event, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
     email: '',
     tel: '',
-    selectedMenus: {}, // Almacenar los menús elegidos para cada momento
+    selectedMenus: {},
   });
 
   const [isLoading, setIsLoading] = useState(false);
+/*
   useEffect(() => {
     if (formDataExternal) {
       formDataExternal(formData);
     }
   }, [formData, formDataExternal]);
   
+  */
+ 
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
@@ -25,30 +28,38 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
     formDataExternal && formDataExternal(updated);
   };
   
-  const handleMenuSelection = (momentDateTime, value) => {
+    const handleMenuSelection = (momentDateTime, value) => {
+    const updatedMenus = {
+      ...formData.selectedMenus,
+      [momentDateTime]: value,
+    };
+
     const updated = {
       ...formData,
-      selectedMenus: {
-        ...formData.selectedMenus,
-        [momentDateTime]: value
-      }
+      selectedMenus: updatedMenus,
     };
+
+    console.log(`🍽️ Menú seleccionado para ${momentDateTime}: ${value}`);
     setFormData(updated);
-    formDataExternal && formDataExternal(updated);
   };
   
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
+    console.log("📦 Enviando al backend:");
+    console.log("🧍‍♂️ Nombre:", formData.name);
+    console.log("🧍‍♀️ Apellido:", formData.lastName);
+    console.log("📧 Email:", formData.email);
+    console.log("📱 Tel:", formData.tel);
+    console.log("🍴 Menús seleccionados:", formData.selectedMenus);
+
     try {
       const preferenceId = await onSubmit(formData);
-      if (setPreferenceId) {
-        setPreferenceId(preferenceId); // ✅ vuelve a activar el Wallet
-      }
+      console.log("✅ preferenceId recibido:", preferenceId);
     } catch (error) {
-      console.error("Error al enviar el formulario:", error);
+      console.error("❌ Error al enviar el formulario:", error);
     } finally {
       setIsLoading(false);
     }
@@ -56,16 +67,15 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
   
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
-  
+
     if (event.hasMenu && event.menuMoments.length > 0) {
-      return event.menuMoments.every((moment) => {
-        return !!formData.selectedMenus[moment.dateTime];
-      });
+      return event.menuMoments.every((moment) =>
+        !!formData.selectedMenus[moment.dateTime]
+      );
     }
-  
+
     return true;
   };
-  
   
   
   return (
@@ -76,46 +86,44 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
           <Form.Label>Nombre:</Form.Label>
           <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
         </Form.Group>
-  
+
         <Form.Group controlId="formLastName" className="mt-3">
           <Form.Label>Apellido:</Form.Label>
           <Form.Control type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
         </Form.Group>
-  
+
         <Form.Group controlId="formEmail" className="mt-3">
           <Form.Label>Email:</Form.Label>
           <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
         </Form.Group>
-  
+
         <Form.Group controlId="formTel" className="mt-3">
           <Form.Label>Teléfono:</Form.Label>
           <Form.Control type="text" name="tel" value={formData.tel} onChange={handleChange} required />
         </Form.Group>
-  
+
         {event.hasMenu && event.menuMoments.length > 0 && (
           <>
             <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
             {event.menuMoments.map((moment, index) => (
-            <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
-              <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
-              <Form.Control
-                as="select"
-                value={formData.selectedMenus[moment.dateTime] || ''}
-                onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
-                required
-              >
-                <option value="">Seleccione una opción</option>
-                {moment.menuOptions.map((menu, menuIndex) => (
-                  <option key={menuIndex} value={menu}>{menu}</option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          ))}
-
+              <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
+                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+                <Form.Control
+                  as="select"
+                  value={formData.selectedMenus[moment.dateTime] || ''}
+                  onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
+                  required
+                >
+                  <option value="">Seleccione una opción</option>
+                  {moment.menuOptions.map((menu, menuIndex) => (
+                    <option key={menuIndex} value={menu}>{menu}</option>
+                  ))}
+                </Form.Control>
+              </Form.Group>
+            ))}
           </>
         )}
-  
-        {/* Botón Mercado Pago */}
+
         <Button className="mt-3 w-100" variant="primary" type="submit" disabled={!isFormValid() || isLoading}>
           {isLoading ? (
             <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
@@ -123,27 +131,26 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
             'Continuar al Pago'
           )}
         </Button>
-  
-        {/* Botón WhatsApp */}
+
         <Button
           variant="outline-success"
           className="mt-3 w-100"
           disabled={!isFormValid()}
           onClick={() => {
             const { name, lastName, email, tel, selectedMenus } = formData;
-  
+
             const menuText = event.hasMenu && event.menuMoments.length > 0
               ? Object.entries(selectedMenus).map(([key, value]) =>
-                  `• ${new Date(event.menuMoments[key].dateTime).toLocaleString()}: ${value}`
+                  `• ${new Date(key).toLocaleString()}: ${value}`
                 ).join('\n')
               : 'Sin menú';
-  
+
             const message = encodeURIComponent(
               `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
               `Nombre: ${name} ${lastName}\nEmail: ${email}\nTeléfono: ${tel}\n\n` +
               `Menús seleccionados:\n${menuText}`
             );
-  
+
             const phone = "5493534219889";
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
           }}
@@ -153,8 +160,6 @@ const TransactionForm = ({ event, onSubmit, formDataExternal }) => {
       </Form>
     </div>
   );
-  
-  
 };
 
 export default TransactionForm;
