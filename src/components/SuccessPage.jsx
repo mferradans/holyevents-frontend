@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Container, Alert } from 'react-bootstrap';
-import Confetti from 'react-confetti'; // Solo si decides agregar confeti
-import { useWindowSize } from 'react-use'; // Para manejar el tamaño de la ventana
+import Confetti from 'react-confetti';
+import { useWindowSize } from 'react-use';
 
 const SuccessPage = () => {
   const location = useLocation();
@@ -15,34 +15,14 @@ const SuccessPage = () => {
 
   useEffect(() => {
     const transactionIdParam = queryParams.get('transactionId');
-  
+
     if (!transactionIdParam) {
       navigate('/');
       return;
     }
-  
+
     setTransactionId(transactionIdParam);
-  }, [navigate]);
-  
-  
-    const fetchTransaction = async () => {
-      try {
-        const res = await fetch(`${API_URL}/get_transaction?paymentId=${paymentId}`);
-        const data = await res.json();
-        if (data.transactionId) {
-          setTransactionId(data.transactionId);
-        } else {
-          navigate('/');
-        }
-      } catch (err) {
-        console.error("❌ Error al obtener transactionId:", err);
-        navigate('/');
-      }
-    };
-  
-    fetchTransaction();
-  }, [navigate]);
-  
+  }, [navigate, location.search]);
 
   const handleDownload = () => {
     window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
