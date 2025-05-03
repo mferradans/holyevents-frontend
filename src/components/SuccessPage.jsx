@@ -1,3 +1,4 @@
+// SuccessPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, Container, Alert } from 'react-bootstrap';
@@ -17,14 +18,17 @@ const SuccessPage = () => {
     const transactionIdParam = queryParams.get('transactionId');
 
     if (!transactionIdParam) {
+      console.warn("❌ transactionId no encontrado en URL");
       navigate('/');
       return;
     }
 
+    console.log("✅ transactionId recibido:", transactionIdParam);
     setTransactionId(transactionIdParam);
   }, [navigate, location.search]);
 
   const handleDownload = () => {
+    if (!transactionId) return;
     window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
   };
 

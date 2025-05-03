@@ -33,8 +33,9 @@ function App() {
         <Route path="/admin/statistics" element={<PrivateRoute><EventStatistics /></PrivateRoute>} />
         <Route path="/admin/event/create" element={<PrivateRoute><EventForm /></PrivateRoute>} /> {/* Ruta para crear */}
         <Route path="/admin/event/edit/:id" element={<PrivateRoute><EventForm /></PrivateRoute>} /> {/* Ruta para editar */}
-        <Route path="/payment_success" element={<SuccessPage />} />
-        <Route path="/payment_failure" element={<PaymentFailure />} />
+        <Route path="/payment_success" element={<SuccessPage />} />  {/* opcional */}
+  <Route path="/success" element={<SuccessPage />} />           {/* NECESARIA */}        
+  <Route path="/payment_failure" element={<PaymentFailure />} />
         <Route path="/payment_pending" element={<PaymentPending />} />
         <Route path="/verification_result" element={<VerificationResult />} />
         <Route path="/admin/event/:eventId/sales" element={<EventSales />} />
