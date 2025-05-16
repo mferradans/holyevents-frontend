@@ -70,6 +70,7 @@ const TransactionForm = ({ event, onSubmit }) => {
   return (
     <div>
       <h2>Compra de ticket:</h2>
+      <h4>¡Ticket único e intransferible!</h4>
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="formName">
           <Form.Label>Nombre:</Form.Label>
