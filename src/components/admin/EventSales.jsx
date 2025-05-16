@@ -32,6 +32,17 @@ const EventSales = () => {
     const fullName = `${sale.name} ${sale.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase().trim());
   });
+// Crear un acumulador de menús
+const menuCounts = {};
+
+sales.forEach(sale => {
+  const selected = sale.selectedMenus || {};
+  Object.values(selected).forEach(menu => {
+    if (menu) {
+      menuCounts[menu] = (menuCounts[menu] || 0) + 1;
+    }
+  });
+});
 
   return (
     <Container>
@@ -51,6 +62,26 @@ const EventSales = () => {
       >
         Añadir Venta Manual
       </Button>
+
+      <h4 className="text-white mt-4">Resumen de Menús Vendidos</h4>
+<Table striped bordered hover variant="dark">
+  <thead>
+    <tr>
+      <th>Menú</th>
+      <th>Cantidad Vendida</th>
+    </tr>
+  </thead>
+  <tbody>
+    {Object.entries(menuCounts).map(([menuName, count]) => (
+      <tr key={menuName}>
+        <td>{menuName}</td>
+        <td>{count}</td>
+      </tr>
+    ))}
+  </tbody>
+</Table>
+
+
 
       <Form.Group className="mb-3">
         <Form.Control
