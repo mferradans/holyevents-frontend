@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import EventList from './EventList';
 import { Container, Row, Col, Button } from 'react-bootstrap';

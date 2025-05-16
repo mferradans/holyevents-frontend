@@ -39,9 +39,9 @@ function App() {
   <Route path="/payment_failure" element={<PaymentFailure />} />
         <Route path="/payment_pending" element={<PaymentPending />} />
         <Route path="/verification_result" element={<VerificationResult />} />
-        <Route path="/admin/event/:eventId/sales" element={<EventSales />} />
-        <Route path="/admin/events/:eventId/add-manual-sale" element={<AddManualSalePage />} />
-        <Route path="/admin/events/:eventId/menu-summary" element={<EventMenuSummary />} />
+        <Route path="/admin/event/:eventId/sales" element={<PrivateRoute><EventSales /></PrivateRoute>} />
+        <Route path="/admin/events/:eventId/add-manual-sale" element={<PrivateRoute><AddManualSalePage /></PrivateRoute>} />
+        <Route path="/admin/events/:eventId/menu-summary" element={<PrivateRoute><EventMenuSummary /></PrivateRoute>} />
 
 
       </Routes>
