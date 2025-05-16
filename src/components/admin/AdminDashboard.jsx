@@ -5,7 +5,7 @@ import EventList from './EventList';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 
 const AdminDashboard = () => {
-  const [message, setMessage] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -18,7 +18,13 @@ const AdminDashboard = () => {
         .get(`${API_URL}/api/auth/dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        .then((response) => setMessage(response.data.message))
+        .then((response) => {
+          if (response.data && response.data.email) {
+            setAdminEmail(response.data.email);
+          } else {
+            setAdminEmail('');
+          }
+        })
         .catch((error) => {
           localStorage.removeItem('token');
           navigate('/admin/login');
@@ -40,13 +46,13 @@ const AdminDashboard = () => {
       <Row>
         <Col>
           <h1>Dashboard de Administrador</h1>
-          <p>{message}</p>
+          {adminEmail && <p><strong>{adminEmail}</strong></p>}
           <EventList />
-          <div className="mt-3">
+          <div className="mt-3 d-flex flex-column flex-md-row gap-2">
             <Button 
               variant="outline-primary" 
-              onClick={handleGoToStatistics} 
-              className="me-2"
+              onClick={handleGoToStatistics}
+              className="w-100 w-md-auto"
               style={{ color: '#3399ff', borderColor: '#3399ff' }}
             >
               Ver Estadísticas
@@ -54,6 +60,7 @@ const AdminDashboard = () => {
             <Button 
               variant="outline-danger" 
               onClick={handleLogout}
+              className="w-100 w-md-auto"
               style={{ color: '#ff4d4d', borderColor: '#ff4d4d' }}
             >
               Cerrar Sesión
