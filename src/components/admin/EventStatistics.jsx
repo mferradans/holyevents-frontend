@@ -12,7 +12,7 @@ import {
   Legend
 } from 'chart.js';
 import { Container, Card } from 'react-bootstrap';
-import './EventStatistics.css'; // CSS que ya tenés
+import './EventStatistics.css';
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -67,7 +67,7 @@ const EventStatistics = () => {
         callbacks: {
           label: function (tooltipItem) {
             const event = stats[tooltipItem.dataIndex];
-            return `Transacciones: ${event.transactionCount} | Ingreso Total: $${event.totalIncome}`;
+            return `Transacciones: ${event.transactionCount} | Ingreso: $${event.totalIncome}`;
           },
         },
       },
@@ -82,38 +82,32 @@ const EventStatistics = () => {
     },
     scales: {
       x: {
-        ticks: {
-          color: '#ffffff',
-        },
+        ticks: { color: '#ffffff' },
       },
       y: {
-        ticks: {
-          color: '#ffffff',
-        },
+        ticks: { color: '#ffffff' },
       },
     },
   };
 
   return (
     <Container fluid className="statistics-container text-white">
-      {/* Cards superiores */}
       <div className="top-cards">
-        <Card className="text-white bg-primary mb-3 small-card">
+        <Card className="bg-primary mb-3 small-card">
           <Card.Body>
-            <Card.Title>Total de Ventas</Card.Title>
-            <Card.Text>{totalTransactions}</Card.Text>
+            <Card.Title className="text-white">Total de Ventas</Card.Title>
+            <Card.Text className="text-white">{totalTransactions}</Card.Text>
           </Card.Body>
         </Card>
 
-        <Card className="text-white bg-success mb-3 small-card">
+        <Card className="bg-success mb-3 small-card">
           <Card.Body>
-            <Card.Title>Ganancia Total</Card.Title>
-            <Card.Text>${totalIncome}</Card.Text>
+            <Card.Title className="text-white">Ganancia Total</Card.Title>
+            <Card.Text className="text-white">${totalIncome}</Card.Text>
           </Card.Body>
         </Card>
       </div>
 
-      {/* Contenido principal con gráfico y lista */}
       <div className="main-content">
         <Card className="graph-card mb-3 bg-dark text-white">
           <Card.Body style={{ overflowX: 'auto' }}>

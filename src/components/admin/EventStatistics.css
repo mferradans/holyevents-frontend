@@ -48,3 +48,29 @@
 .event-item:last-child {
   border-bottom: none; /* Quitar la línea del último elemento */
 }
+/* Estilo para garantizar texto blanco */
+.card, .card-body, .card-title, .card-text {
+  color: white !important;
+}
+
+/* Vista responsive adaptada */
+@media (max-width: 768px) {
+  .top-cards {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .graph-card, .list-card {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .small-card {
+    max-width: 100% !important;
+    width: 100%;
+  }
+}
