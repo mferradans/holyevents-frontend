@@ -15,39 +15,24 @@ const TransactionForm = ({ event, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const updated = { ...formData, [name]: value };
-    setFormData(updated);
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleMenuSelection = (momentDateTime, value) => {
-    const updatedMenus = {
-      ...formData.selectedMenus,
-      [momentDateTime]: value,
-    };
-
-    const updated = {
-      ...formData,
-      selectedMenus: updatedMenus,
-    };
-
-    console.log(`🍽️ Menú seleccionado para ${momentDateTime}: ${value}`);
-    setFormData(updated);
+    setFormData(prev => ({
+      ...prev,
+      selectedMenus: {
+        ...prev.selectedMenus,
+        [momentDateTime]: value,
+      },
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    console.log("📦 Enviando al backend:");
-    console.log("🧍‍♂️ Nombre:", formData.name);
-    console.log("🧍‍♀️ Apellido:", formData.lastName);
-    console.log("📧 Email:", formData.email);
-    console.log("📱 Tel:", formData.tel);
-    console.log("🍴 Menús seleccionados:", formData.selectedMenus);
-
     try {
-      const preferenceId = await onSubmit(formData);
-      console.log("✅ preferenceId recibido:", preferenceId);
+      await onSubmit(formData);
     } catch (error) {
       console.error("❌ Error al enviar el formulario:", error);
     } finally {
@@ -57,21 +42,19 @@ const TransactionForm = ({ event, onSubmit }) => {
 
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
-
     if (event.hasMenu && event.menuMoments.length > 0) {
-      return event.menuMoments.every((moment) =>
-        !!formData.selectedMenus[moment.dateTime]
-      );
+      return event.menuMoments.every((moment) => !!formData.selectedMenus[moment.dateTime]);
     }
-
     return true;
   };
 
   return (
     <div>
-      <h2>Compra de ticket:</h2>
-      <h4>¡Ticket único e intransferible!</h4>
+      <h4 className="mb-1">Compra de Ticket</h4>
+      <p className="text-muted">Ticket único e intransferible</p>
+
       <Form onSubmit={handleSubmit}>
+        <hr />
         <Form.Group controlId="formName">
           <Form.Label>Nombre:</Form.Label>
           <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
@@ -94,7 +77,8 @@ const TransactionForm = ({ event, onSubmit }) => {
 
         {event.hasMenu && event.menuMoments.length > 0 && (
           <>
-            <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
+            <hr />
+            <h5 className="mt-4">Seleccione su menú:</h5>
             {event.menuMoments.map((moment, index) => (
               <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
                 <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
@@ -114,7 +98,7 @@ const TransactionForm = ({ event, onSubmit }) => {
           </>
         )}
 
-        <Button className="mt-3 w-100" variant="primary" type="submit" disabled={!isFormValid() || isLoading}>
+        <Button className="mt-4 w-100" variant="primary" type="submit" disabled={!isFormValid() || isLoading}>
           {isLoading ? (
             <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
           ) : (
@@ -124,11 +108,10 @@ const TransactionForm = ({ event, onSubmit }) => {
 
         <Button
           variant="outline-success"
-          className="mt-3 w-100"
+          className="mt-4 w-100"
           disabled={!isFormValid()}
           onClick={() => {
             const { name, lastName, email, tel, selectedMenus } = formData;
-
             const menuText = event.hasMenu && event.menuMoments.length > 0
               ? Object.entries(selectedMenus).map(([key, value]) => {
                   const fixedDate = key.replace('_t', 'T').replace('_z', 'Z');

@@ -5,7 +5,6 @@ import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card } from 'react-bootstrap';
-import { Button } from 'react-bootstrap';
 
 const EventPage = () => {
   const { id } = useParams();
@@ -59,15 +58,15 @@ const EventPage = () => {
   if (!event) return <div className="text-white">Cargando...</div>;
 
   return (
-    <Container className="text-white">
-      <Row className="mt-5 d-flex flex-column flex-md-row gap-4">
+    <Container className="text-white mt-5">
+      <Row>
         {/* Columna izquierda: Detalles del evento */}
-        <Col md={6}>
+        <Col md={6} className="mb-4">
           <img
             src={event.coverImage ? event.coverImage : `${API_URL}/uploads/notfound.png`}
             alt={event.name}
             className="w-100 mb-3"
-            style={{ borderRadius: '15px', objectFit: 'cover' }}
+            style={{ borderRadius: '15px', objectFit: 'cover', maxHeight: '300px' }}
           />
 
           <h1 className="mb-3">{event.name}</h1>
