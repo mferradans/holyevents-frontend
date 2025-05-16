@@ -4,7 +4,7 @@ import axios from 'axios';
 import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, Card } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 
 const EventPage = () => {
@@ -13,6 +13,8 @@ const EventPage = () => {
   const [preferenceId, setPreferenceId] = useState(null);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  const [formData, setFormData] = useState(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -31,14 +33,10 @@ const EventPage = () => {
 
     fetchEvent();
   }, [id]);
-  const [formData, setFormData] = useState(null);
 
   const handleFormSubmit = async (formData) => {
-
     const id = await createPreference(event, formData);
-    if (id) {
-      setPreferenceId(id);
-    }
+    if (id) setPreferenceId(id);
   };
 
   const createPreference = async (event, formData) => {
@@ -50,67 +48,74 @@ const EventPage = () => {
         lastName: formData.lastName,
         email: formData.email,
         tel: formData.tel,
-        selectedMenus: formData.selectedMenus, 
+        selectedMenus: formData.selectedMenus,
       });
       return response.data.id;
     } catch (error) {
       console.error('Error al crear preferencia de pago:', error);
     }
   };
-  
-  if (!event) return <div>Cargando...</div>;
+
+  if (!event) return <div className="text-white">Cargando...</div>;
 
   return (
     <Container className="text-white">
-      <Row className="mt-5">
+      <Row className="mt-5 d-flex flex-column flex-md-row gap-4">
         {/* Columna izquierda: Detalles del evento */}
-        <Col md={6} style={{ textAlign: 'left' }}>
+        <Col md={6}>
           <img
             src={event.coverImage ? event.coverImage : `${API_URL}/uploads/notfound.png`}
             alt={event.name}
-            style={{ width: '100%', maxWidth: '400px', borderRadius: '15px', objectFit: 'cover' }}
+            className="w-100 mb-3"
+            style={{ borderRadius: '15px', objectFit: 'cover' }}
           />
-  
-          <h1>{event.name}</h1>
-          <p><strong>Descripción:</strong> {event.description}</p>
-          <p><strong>Ubicación:</strong> {event.location}</p>
-          <p><strong>Fecha de Inicio:</strong> {new Date(event.startDate).toLocaleDateString()}</p>
-          <p><strong>Fecha Fin de Compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString()}</p>
-          <p><strong>Capacidad:</strong> {event.capacity} personas</p>
-          <p><strong>Precio:</strong> ${event.price}</p>
-  
-          {event.hasMenu && event.menuMoments.length > 0 && (
-            <p>
-              <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong>{' '}
-              ({event.menuMoments.map((moment, i) =>
-                new Date(moment.dateTime).toLocaleString('es-AR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
-              ).join(', ')})
-            </p>
-          )}
+
+          <h1 className="mb-3">{event.name}</h1>
+
+          <Card className="bg-dark text-white mb-3">
+            <Card.Body>
+              <p><strong>Descripción:</strong> {event.description}</p>
+              <p><strong>Ubicación:</strong> {event.location}</p>
+              <p><strong>Fecha de Inicio:</strong> {new Date(event.startDate).toLocaleDateString()}</p>
+              <p><strong>Fecha Fin de Compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString()}</p>
+              <p><strong>Capacidad:</strong> {event.capacity} personas</p>
+              <p><strong>Precio:</strong> ${event.price}</p>
+
+              {event.hasMenu && event.menuMoments.length > 0 && (
+                <p>
+                  <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong>{' '}
+                  ({event.menuMoments.map((moment, i) =>
+                    new Date(moment.dateTime).toLocaleString('es-AR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  ).join(', ')})
+                </p>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
-  
+
         {/* Columna derecha: Formulario de compra */}
         <Col md={6}>
-          <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={formData => setFormData(formData)} />
-  
-          <div style={{ marginTop: '20px' }}>
-            {/* Botón de Mercado Pago */}
-            {preferenceId && (
-              <Wallet initialization={{ preferenceId: preferenceId }} />
-            )}
-  
-           
-          </div>
+          <Card className="bg-dark text-white p-3">
+            <TransactionForm
+              event={event}
+              onSubmit={handleFormSubmit}
+              formDataExternal={setFormData}
+            />
+            <div className="mt-4">
+              {preferenceId && (
+                <Wallet initialization={{ preferenceId: preferenceId }} />
+              )}
+            </div>
+          </Card>
         </Col>
       </Row>
     </Container>
   );
-  
 };
 
 export default EventPage;
