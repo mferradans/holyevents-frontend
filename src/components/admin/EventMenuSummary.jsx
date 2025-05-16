@@ -25,7 +25,6 @@ const EventMenuSummary = () => {
       setSales(response.data.sales);
       setEventName(response.data.eventName);
 
-      // Procesar conteo de menús
       const counts = {};
       response.data.sales.forEach((sale) => {
         const selected = sale.selectedMenus || {};
@@ -42,6 +41,13 @@ const EventMenuSummary = () => {
     }
   };
 
+  // Total de menús vendidos
+  const totalMenus = Object.values(menuCounts).reduce((acc, val) => acc + val, 0);
+
+  // Menú más vendido
+  const topMenu = Object.entries(menuCounts)
+    .sort((a, b) => b[1] - a[1])[0];
+
   return (
     <Container>
       <h2 className="my-4 text-white">Resumen de Menús del Evento: {eventName}</h2>
@@ -54,20 +60,36 @@ const EventMenuSummary = () => {
         Volver a Ventas
       </Button>
 
+      {/* Total de menús vendidos */}
+      <p className="text-white">
+        <strong>Total de menús vendidos:</strong> {totalMenus}
+      </p>
+
+      {/* Menú más elegido */}
+      {topMenu && (
+        <p className="text-white">
+          <strong>Menú más elegido:</strong> {topMenu[0]} ({topMenu[1]} ventas)
+        </p>
+      )}
+
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
             <th>Menú</th>
             <th>Cantidad Vendida</th>
+            <th>% del total</th>
           </tr>
         </thead>
         <tbody>
-          {Object.entries(menuCounts).map(([menu, count]) => (
-            <tr key={menu}>
-              <td>{menu}</td>
-              <td>{count}</td>
-            </tr>
-          ))}
+          {Object.entries(menuCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([menu, count]) => (
+              <tr key={menu}>
+                <td>{menu}</td>
+                <td>{count}</td>
+                <td>{((count / totalMenus) * 100).toFixed(1)}%</td>
+              </tr>
+            ))}
         </tbody>
       </Table>
     </Container>
