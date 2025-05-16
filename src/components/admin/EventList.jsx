@@ -41,7 +41,6 @@ const EventList = () => {
     }
   };
 
-  // Navegar a la nueva página de ventas del evento
   const handleViewSales = (eventId) => {
     navigate(`/admin/event/${eventId}/sales`);
   };
@@ -69,29 +68,29 @@ const EventList = () => {
             <tr key={event._id}>
               <td><strong>{event.name}</strong></td>
               <td>
-                <Button 
-                  variant="outline-warning" 
-                  onClick={() => handleEditEvent(event)} 
-                  className="me-2"
-                  size="sm"
-                >
-                  Editar
-                </Button>
-                <Button 
-                  variant="outline-danger" 
-                  onClick={() => handleDelete(event._id)}
-                  className="me-2"
-                  size="sm"
-                >
-                  Eliminar
-                </Button>
-                <Button 
-                  variant="outline-info" 
-                  onClick={() => handleViewSales(event._id)}
-                  size="sm"
-                >
-                  Ver Ventas
-                </Button>
+                <div className="d-flex flex-column flex-md-row gap-2 mt-2">
+                  <Button 
+                    variant="outline-warning" 
+                    onClick={() => handleEditEvent(event)} 
+                    size="sm"
+                  >
+                    Editar
+                  </Button>
+                  <Button 
+                    variant="outline-danger" 
+                    onClick={() => handleDelete(event._id)}
+                    size="sm"
+                  >
+                    Eliminar
+                  </Button>
+                  <Button 
+                    variant="outline-info" 
+                    onClick={() => handleViewSales(event._id)}
+                    size="sm"
+                  >
+                    Ver Ventas
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}
