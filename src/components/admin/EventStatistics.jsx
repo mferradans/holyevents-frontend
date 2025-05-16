@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import { Container, Card } from 'react-bootstrap';
-import './EventStatistics.css'; // Archivo CSS personalizado
+import { Container, Card, Row, Col } from 'react-bootstrap';
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -16,10 +15,10 @@ const EventStatistics = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token'); // Obtener el token JWT
+        const token = localStorage.getItem('token');
         const response = await axios.get(`${API_URL}/api/transactions/stats`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Enviar el token en las cabeceras
+            Authorization: `Bearer ${token}`,
           },
         });
         setStats(response.data);
@@ -31,21 +30,20 @@ const EventStatistics = () => {
     fetchStats();
   }, []);
 
-  // Calcular la cantidad total de transacciones y la ganancia total
   const totalTransactions = stats.reduce((acc, event) => acc + event.transactionCount, 0);
   const totalIncome = stats.reduce((acc, event) => acc + event.totalIncome, 0);
+  const averageIncome = totalTransactions > 0 ? (totalIncome / totalTransactions).toFixed(2) : 0;
 
-  // Preparar los datos para el gráfico de barras
   const data = {
-    labels: stats.map(event => event._id), // Nombres de los eventos
+    labels: stats.map(event => event._id),
     datasets: [
       {
         label: 'Transacciones',
-        data: stats.map(event => event.transactionCount), // Transacciones por evento
-        backgroundColor: 'rgba(54, 162, 235, 0.6)', // Color de las barras
+        data: stats.map(event => event.transactionCount),
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
         borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1,
-        hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)', // Color al pasar el mouse
+        hoverBackgroundColor: 'rgba(75, 192, 192, 0.8)',
         hoverBorderColor: 'rgba(75, 192, 192, 1)',
       },
     ],
@@ -61,7 +59,7 @@ const EventStatistics = () => {
         callbacks: {
           label: function (tooltipItem) {
             const event = stats[tooltipItem.dataIndex];
-            return `Transacciones: ${event.transactionCount} | Ingreso Total: $${event.totalIncome}`;
+            return `Transacciones: ${event.transactionCount} | Ingreso: $${event.totalIncome}`;
           },
         },
       },
@@ -73,47 +71,68 @@ const EventStatistics = () => {
   };
 
   return (
-    <Container fluid className="statistics-container">
-      {/* Sección superior: total de transacciones y ganancia total */}
-      <div className="top-cards">
-        <Card className="text-white bg-primary mb-3 small-card">
-          <Card.Body>
-            <Card.Title>Total de Ventas</Card.Title>
-            <Card.Text>{totalTransactions}</Card.Text>
-          </Card.Body>
-        </Card>
+    <Container className="my-4">
+      <h2 className="text-white text-center mb-4">Estadísticas de Eventos</h2>
 
-        <Card className="text-white bg-success mb-3 small-card">
-          <Card.Body>
-            <Card.Title>Ganancia Total</Card.Title>
-            <Card.Text>${totalIncome}</Card.Text>
-          </Card.Body>
-        </Card>
-      </div>
+      <Row className="g-3 text-white mb-4">
+        <Col xs={12} md={4}>
+          <Card className="bg-primary h-100">
+            <Card.Body>
+              <Card.Title>Total de Ventas</Card.Title>
+              <Card.Text className="fs-4">{totalTransactions}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
 
-      {/* Gráfico de barras y lista de eventos */}
-      <div className="main-content">
-        <Card className="graph-card mb-3">
-          <Card.Body>
-            <Bar data={data} options={options} />
-          </Card.Body>
-        </Card>
+        <Col xs={12} md={4}>
+          <Card className="bg-success h-100">
+            <Card.Body>
+              <Card.Title>Ganancia Total</Card.Title>
+              <Card.Text className="fs-4">${totalIncome}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
 
-        <Card className="list-card mb-3 text-white bg-dark">
-          <Card.Body>
-            <h5>Lista de Eventos</h5>
-            <ul className="list-unstyled">
-              {stats.map((event) => (
-                <li key={event._id} className="mb-2 event-item">
-                  <strong>{event._id}</strong> <br />
-                  Transacciones: {event.transactionCount} <br />
-                  Ganancia Total: ${event.totalIncome}
-                </li>
-              ))}
-            </ul>
-          </Card.Body>
-        </Card>
-      </div>
+        <Col xs={12} md={4}>
+          <Card className="bg-info text-dark h-100">
+            <Card.Body>
+              <Card.Title>Ingreso Promedio</Card.Title>
+              <Card.Text className="fs-4">${averageIncome}</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col xs={12}>
+          <Card className="bg-dark text-white">
+            <Card.Body style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: '500px' }}>
+                <Bar data={data} options={options} />
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col xs={12}>
+          <Card className="bg-secondary text-white">
+            <Card.Body>
+              <h5 className="mb-3">Resumen por Evento</h5>
+              <ul className="list-unstyled">
+                {stats.map((event) => (
+                  <li key={event._id} className="mb-3 border-bottom pb-2">
+                    <strong>{event._id}</strong><br />
+                    Transacciones: {event.transactionCount}<br />
+                    Ganancia Total: ${event.totalIncome}
+                  </li>
+                ))}
+              </ul>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </Container>
   );
 };
