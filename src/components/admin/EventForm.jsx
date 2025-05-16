@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../utils/axiosInstance';
+import axios from '../../utils/axiosInstance.js';
 import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';

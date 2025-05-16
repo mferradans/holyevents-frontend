@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from '../utils/axiosInstance';
+import axios from '../../utils/axiosInstance.js';
 import { Container, Table, Button } from 'react-bootstrap';
 
 const EventMenuSummary = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from '../utils/axiosInstance';
+import axios from '../../utils/axiosInstance.js';
 import { Form, Button, Spinner, Container, Row, Col } from 'react-bootstrap';
 
 const AddManualSalePage = () => {
