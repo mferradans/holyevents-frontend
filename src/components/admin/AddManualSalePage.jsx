@@ -86,6 +86,15 @@ const AddManualSalePage = () => {
   return (
     <Container className="text-white mt-4">
       <h2>Registrar Venta Manual: {event.name}</h2>
+      
+      <Button 
+        variant="outline-light" 
+        className="mb-4"
+        onClick={() => navigate(-1)}
+      >
+        Volver a Ventas
+      </Button>
+
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={6}>
