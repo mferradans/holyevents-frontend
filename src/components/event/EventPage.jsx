@@ -10,10 +10,10 @@ const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
+  const [formData, setFormData] = useState(null);
+  const [showWallet, setShowWallet] = useState(false);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
-
-  const [formData, setFormData] = useState(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -35,7 +35,10 @@ const EventPage = () => {
 
   const handleFormSubmit = async (formData) => {
     const id = await createPreference(event, formData);
-    if (id) setPreferenceId(id);
+    if (id) {
+      setPreferenceId(id);
+      setShowWallet(true);
+    }
   };
 
   const createPreference = async (event, formData) => {
@@ -59,14 +62,18 @@ const EventPage = () => {
 
   return (
     <Container className="text-white mt-5">
-      <Row>
-        {/* Columna izquierda: Detalles del evento */}
+      <Row className="gx-5 align-items-start flex-column flex-md-row">
+        {/* Columna izquierda: imagen y datos */}
         <Col md={6} className="mb-4">
           <img
             src={event.coverImage ? event.coverImage : `${API_URL}/uploads/notfound.png`}
             alt={event.name}
             className="w-100 mb-3"
-            style={{ borderRadius: '15px', objectFit: 'cover', maxHeight: '300px' }}
+            style={{
+              borderRadius: '15px',
+              objectFit: 'cover',
+              maxHeight: '300px',
+            }}
           />
 
           <h1 className="mb-3">{event.name}</h1>
@@ -83,7 +90,7 @@ const EventPage = () => {
               {event.hasMenu && event.menuMoments.length > 0 && (
                 <p>
                   <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong>{' '}
-                  ({event.menuMoments.map((moment, i) =>
+                  ({event.menuMoments.map((moment) =>
                     new Date(moment.dateTime).toLocaleString('es-AR', {
                       day: '2-digit',
                       month: '2-digit',
@@ -97,19 +104,17 @@ const EventPage = () => {
           </Card>
         </Col>
 
-        {/* Columna derecha: Formulario de compra */}
+        {/* Columna derecha: formulario */}
         <Col md={6}>
-          <Card className="bg-dark text-white p-3">
+          <Card className="bg-dark text-white p-4">
             <TransactionForm
               event={event}
               onSubmit={handleFormSubmit}
               formDataExternal={setFormData}
+              showWallet={showWallet}
+              preferenceId={preferenceId}
+              setShowWallet={setShowWallet}
             />
-            <div className="mt-4">
-              {preferenceId && (
-                <Wallet initialization={{ preferenceId: preferenceId }} />
-              )}
-            </div>
           </Card>
         </Col>
       </Row>
