@@ -79,12 +79,17 @@ const EventForm = () => {
     setNewMenuMoment({ dateTime: '', menuOptions: '' });
   };
 
+  const handleRemoveMenuMoment = (indexToRemove) => {
+    const updatedMoments = formData.menuMoments.filter((_, index) => index !== indexToRemove);
+    setFormData({ ...formData, menuMoments: updatedMoments });
+  };
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
 
     if (!file) return;
 
-    const maxSize = 3 * 1024 * 1024; // 3MB en bytes
+    const maxSize = 3 * 1024 * 1024;
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
 
     if (!allowedTypes.includes(file.type)) {
@@ -97,7 +102,6 @@ const EventForm = () => {
       return;
     }
 
-    // Preparar datos para enviar al servidor
     const fileData = new FormData();
     fileData.append("coverImage", file);
 
@@ -124,9 +128,7 @@ const EventForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isImageUploading || isSubmitting) {
-      return;
-    }
+    if (isImageUploading || isSubmitting) return;
 
     setIsSubmitting(true);
 
@@ -178,7 +180,7 @@ const EventForm = () => {
               src={formData.coverImage}
               alt="Vista previa"
               thumbnail
-              style={{ maxWidth: '200px', height: 'auto' }} 
+              style={{ maxWidth: '200px', height: 'auto' }}
             />
             <Button variant="danger" size="sm" className="mt-2" onClick={handleRemoveImage}>Eliminar imagen</Button>
           </div>
@@ -243,8 +245,11 @@ const EventForm = () => {
           </Row>
           <ListGroup className="mt-3">
             {formData.menuMoments.map((moment, index) => (
-              <ListGroup.Item key={index}>
-                <strong>{new Date(moment.dateTime).toLocaleString()}</strong> - {moment.menuOptions.join(', ')}
+              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{new Date(moment.dateTime).toLocaleString()}</strong> - {moment.menuOptions.join(', ')}
+                </div>
+                <Button variant="danger" size="sm" onClick={() => handleRemoveMenuMoment(index)}>Eliminar</Button>
               </ListGroup.Item>
             ))}
           </ListGroup>
@@ -263,4 +268,3 @@ const EventForm = () => {
 };
 
 export default EventForm;
-
