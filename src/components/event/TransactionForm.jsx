@@ -13,6 +13,16 @@ const TransactionForm = ({ event, onSubmit }) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const formatter = new Intl.DateTimeFormat('es-AR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Argentina/Buenos_Aires',
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     const updated = { ...formData, [name]: value };
@@ -97,7 +107,7 @@ const TransactionForm = ({ event, onSubmit }) => {
             <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
             {event.menuMoments.map((moment, index) => (
               <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
-                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+                <Form.Label>{formatter.format(new Date(moment.dateTime))}</Form.Label>
                 <Form.Control
                   as="select"
                   value={formData.selectedMenus[moment.dateTime] || ''}
@@ -131,10 +141,10 @@ const TransactionForm = ({ event, onSubmit }) => {
 
             const menuText = event.hasMenu && event.menuMoments.length > 0
               ? Object.entries(selectedMenus).map(([key, value]) => {
-                  const fixedDate = key.replace('_t', 'T').replace('_z', 'Z');
+                  const fixedDate = key.replace('_t', 'T').replace('_z', 'Z').replace(/_/g, ':');
                   const readable = isNaN(new Date(fixedDate))
                     ? `Fecha inválida`
-                    : new Date(fixedDate).toLocaleString();
+                    : formatter.format(new Date(fixedDate));
                   return `• ${readable}: ${value}`;
                 }).join('\n')
               : 'Sin menú';
