@@ -75,14 +75,16 @@ const VerificationResult = () => {
               </>
             )}
 
-            <div className="d-grid mt-4">
-              <Button 
-                variant="outline-info" 
-                onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
-              >
-                Ver esta venta en lista
-              </Button>
-            </div>
+            {localStorage.getItem('token') && (
+              <div className="d-grid mt-4">
+                <Button 
+                  variant="outline-info" 
+                  onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
+                >
+                  Ver esta venta en lista
+                </Button>
+              </div>
+            )}
           </Card.Body>
         </Card>
       ) : (
