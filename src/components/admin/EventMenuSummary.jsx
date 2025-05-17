@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance.js';
 import { Container, Table, Button } from 'react-bootstrap';
+import { DateTime } from 'luxon';
 
 const EventMenuSummary = () => {
   const { eventId } = useParams();
   const [sales, setSales] = useState([]);
   const [eventName, setEventName] = useState('');
   const [menuCounts, setMenuCounts] = useState({});
+  const [menuByMoment, setMenuByMoment] = useState({});
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -22,31 +24,42 @@ const EventMenuSummary = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setSales(response.data.sales);
+      const ventas = response.data.sales;
+      setSales(ventas);
       setEventName(response.data.eventName);
 
-      const counts = {};
-      response.data.sales.forEach((sale) => {
+      const globalCounts = {};
+      const groupedByMoment = {};
+
+      ventas.forEach((sale) => {
         const selected = sale.selectedMenus || {};
-        Object.values(selected).forEach(menu => {
-          if (menu) {
-            counts[menu] = (counts[menu] || 0) + 1;
-          }
+        Object.entries(selected).forEach(([momentKey, menu]) => {
+          if (!menu) return;
+
+          // Conteo global
+          globalCounts[menu] = (globalCounts[menu] || 0) + 1;
+
+          // Conteo por momento
+          if (!groupedByMoment[momentKey]) groupedByMoment[momentKey] = {};
+          groupedByMoment[momentKey][menu] = (groupedByMoment[momentKey][menu] || 0) + 1;
         });
       });
 
-      setMenuCounts(counts);
+      setMenuCounts(globalCounts);
+      setMenuByMoment(groupedByMoment);
     } catch (error) {
       console.error('Error al obtener las ventas del evento:', error);
     }
   };
 
-  // Total de menús vendidos
-  const totalMenus = Object.values(menuCounts).reduce((acc, val) => acc + val, 0);
+  const formatMoment = (isoString) =>
+    DateTime.fromISO(isoString.replace('_t', 'T').replace('_z', 'Z'), { zone: 'utc' })
+      .setZone('America/Argentina/Buenos_Aires')
+      .setLocale('es')
+      .toFormat('cccc dd-MM, HH:mm');
 
-  // Menú más vendido
-  const topMenu = Object.entries(menuCounts)
-    .sort((a, b) => b[1] - a[1])[0];
+  const totalMenus = Object.values(menuCounts).reduce((acc, val) => acc + val, 0);
+  const topMenu = Object.entries(menuCounts).sort((a, b) => b[1] - a[1])[0];
 
   return (
     <Container>
@@ -60,18 +73,18 @@ const EventMenuSummary = () => {
         Volver a Ventas
       </Button>
 
-      {/* Total de menús vendidos */}
       <p className="text-white">
         <strong>Total de menús vendidos:</strong> {totalMenus}
       </p>
 
-      {/* Menú más elegido */}
       {topMenu && (
         <p className="text-white">
           <strong>Menú más elegido:</strong> {topMenu[0]} ({topMenu[1]} ventas)
         </p>
       )}
 
+      {/* TABLA GENERAL */}
+      <h4 className="text-white mt-4">Totales por Menú</h4>
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
@@ -92,6 +105,34 @@ const EventMenuSummary = () => {
             ))}
         </tbody>
       </Table>
+
+      {/* TABLAS POR MOMENTO */}
+      <h4 className="text-white mt-5">Detalle por Momento de Comida</h4>
+      {Object.entries(menuByMoment)
+        .sort(([a], [b]) => new Date(a.replace('_t', 'T').replace('_z', 'Z')) - new Date(b.replace('_t', 'T').replace('_z', 'Z')))
+        .map(([moment, menus]) => (
+          <div key={moment} className="mb-4">
+            <h5 className="text-info">{formatMoment(moment)}</h5>
+            <Table striped bordered hover variant="secondary">
+              <thead>
+                <tr>
+                  <th>Menú</th>
+                  <th>Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(menus)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([menu, count]) => (
+                    <tr key={menu}>
+                      <td>{menu}</td>
+                      <td>{count}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </Table>
+          </div>
+        ))}
     </Container>
   );
 };
