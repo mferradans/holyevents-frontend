@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../utils/axiosInstance.js';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Table, Container, Button, Form, Card } from 'react-bootstrap';
+import { Table, Container, Button, Form, Card, Spinner } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 
 const EventSales = () => {
@@ -12,6 +12,7 @@ const EventSales = () => {
   const [expandedRows, setExpandedRows] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [highlightId, setHighlightId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // ⬅️ loader agregado
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -39,6 +40,7 @@ const EventSales = () => {
 
   const fetchSales = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/events/${eventId}/sales`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -59,6 +61,8 @@ const EventSales = () => {
       setEventName(response.data.eventName);
     } catch (error) {
       console.error('Error al obtener las ventas del evento:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -116,7 +120,11 @@ const EventSales = () => {
         />
       </Form.Group>
 
-      {!isMobile ? (
+      {isLoading ? (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+          <Spinner animation="border" variant="light" />
+        </div>
+      ) : !isMobile ? (
         <Table striped bordered hover variant="dark">
           <thead>
             <tr>
