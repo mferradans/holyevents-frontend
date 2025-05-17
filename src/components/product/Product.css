@@ -185,3 +185,15 @@
     color: #ffcc00; /* Color amarillo para advertencias moderadas */
   }
   
+
+/* Animación de titileo para advertencia */
+.pulse {
+  animation: pulseAnimation 1.2s infinite;
+}
+
+@keyframes pulseAnimation {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+

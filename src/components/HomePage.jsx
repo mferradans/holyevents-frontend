@@ -3,21 +3,15 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './product/Product.css';
 import '../App.css';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
 import TransactionForm from './event/TransactionForm';
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faUsers } from '@fortawesome/free-solid-svg-icons';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [formData, setFormData] = useState(null);
-  const [preferenceId, setPreferenceId] = useState(null);
   const [viewAvailable, setViewAvailable] = useState(true);
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const eventsPerPage = 3;
@@ -28,15 +22,19 @@ const HomePage = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/events`);
-      const eventsWithTransactionCount = await Promise.all(response.data.map(async (event) => {
-        const transactionResponse = await axios.get(`${API_URL}/api/events/${event._id}/transaction-count`);
-        const transactionCount = transactionResponse.data.transactionCount;
-        return { ...event, transactionCount };
-      }));
-      setEvents(eventsWithTransactionCount);
-      setLoading(false);
+      const eventsWithTransactionCount = await Promise.all(
+        response.data.map(async (event) => {
+          const transactionResponse = await axios.get(`${API_URL}/api/events/${event._id}/transaction-count`);
+          const transactionCount = transactionResponse.data.transactionCount;
+          return { ...event, transactionCount };
+        })
+      );
+
+      const sortedEvents = eventsWithTransactionCount.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      setEvents(sortedEvents);
     } catch (error) {
       console.error('Error al obtener los eventos:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -46,272 +44,137 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
     fetchEvents();
   }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentPage(currentPage => currentPage);
-    }, 30000);
-  
-    return () => clearInterval(interval);
-  }, []);
-
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div className="spinner"></div> {/* Spinner agregado aquí */}
-      </div>
-    );
-  }
 
   const getWarningMessage = (event) => {
     const remainingSpots = event.capacity - event.transactionCount;
     const currentDate = new Date();
     const endPurchaseDate = new Date(event.endPurchaseDate);
     const timeDiff = endPurchaseDate - currentDate;
-    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Convertir a días
-  
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
     const quarterCapacity = event.capacity / 4;
     const halfCapacity = event.capacity / 2;
-  
-    let warnings = [];
+
+    const warnings = [];
     let className = '';
-  
-    // Punto 1: Menos de un cuarto de los cupos (advertencia severa)
+
     if (remainingSpots <= quarterCapacity) {
-      warnings.push({
-        type: 'cupos',
-        message: '¡Muy pocos cupos disponibles!',
-        severity: 'severe'
-      });
-      className = 'warning-severe'; // Prioridad al rojo
+      warnings.push({ type: 'cupos', message: '¡Muy pocos cupos disponibles!', severity: 'severe' });
+      className = 'warning-severe';
+    } else if (remainingSpots <= halfCapacity) {
+      warnings.push({ type: 'cupos', message: '¡Menos de la mitad de cupos disponibles!', severity: 'mild' });
+      if (!className) className = 'warning-mild';
     }
-  
-    // Punto 2: Menos de la mitad de los cupos (advertencia moderada)
-    if (remainingSpots <= halfCapacity && remainingSpots > quarterCapacity) {
-      warnings.push({
-        type: 'cupos',
-        message: '¡Menos de la mitad de cupos disponibles!',
-        severity: 'mild'
-      });
-      if (!className) className = 'warning-mild'; // Solo cambiar si no hay severa
-    }
-  
-    // Punto 3: Menos de 3 semanas para la compra (advertencia moderada)
-    if (daysRemaining <= 21 && daysRemaining > 7) {
-      warnings.push({
-        type: 'cierre',
-        message: '¡Menos de 3 semanas para el cierre!',
-        severity: 'mild'
-      });
-      if (!className) className = 'warning-mild'; // Solo cambiar si no hay severa
-    }
-  
-    // Punto 4: Menos de 1 semana para la compra (advertencia severa)
+
     if (daysRemaining <= 7) {
-      warnings.push({
-        type: 'cierre',
-        message: '¡Menos de 1 semana para el cierre!',
-        severity: 'severe'
-      });
-      className = 'warning-severe'; // Prioridad al rojo
+      warnings.push({ type: 'cierre', message: '¡Menos de 1 semana para el cierre!', severity: 'severe' });
+      className = 'warning-severe';
+    } else if (daysRemaining <= 21) {
+      warnings.push({ type: 'cierre', message: '¡Menos de 3 semanas para el cierre!', severity: 'mild' });
+      if (!className) className = 'warning-mild';
     }
-  
-    if (warnings.length === 0) return null;
-  
-    return { warnings, className };
+
+    return warnings.length > 0 ? { warnings, className, daysRemaining } : null;
   };
-  
-  
 
+  const blockEvent = async (eventId) => {
+    try {
+      await axios.put(`${API_URL}/api/events/${eventId}/block`, { status: 'blocked' });
+    } catch (error) {
+      console.error('Error al bloquear el evento:', error);
+    }
+  };
 
-// Función para bloquear un evento en el backend cuando alcanza su capacidad máxima
-const blockEvent = async (eventId) => {
-  try {
-    await axios.put(`${API_URL}/api/events/${eventId}/block`, {
-      status: 'blocked',
+  const isEventBlocked = (event) => {
+    const currentDate = new Date();
+    const endPurchaseDate = new Date(event.endPurchaseDate);
+    const isSoldOut = event.transactionCount >= event.capacity;
+    const isDateExpired = currentDate > endPurchaseDate;
+
+    if (isSoldOut || isDateExpired) {
+      blockEvent(event._id);
+      return { blocked: true, message: isSoldOut ? 'Evento lleno' : 'Plazo de compra finalizado' };
+    }
+    return { blocked: false };
+  };
+
+  const filterEvents = () => {
+    const currentDate = new Date();
+
+    return events.filter((event) => {
+      const blocked = isEventBlocked(event);
+      const blockTime = new Date(event.updatedAt);
+      const sevenDaysLater = new Date(blockTime.getTime() + 7 * 86400000);
+      return viewAvailable ? !blocked.blocked : blocked.blocked && currentDate <= sevenDaysLater;
     });
-    console.log('Evento bloqueado por falta de cupo.');
-  } catch (error) {
-    console.error('Error al bloquear el evento:', error);
-  }
-};
-
-
-const isEventBlocked = (event) => {
-  const currentDate = new Date();
-  const endPurchaseDate = new Date(event.endPurchaseDate);
-  const isSoldOut = event.transactionCount >= event.capacity;
-  const isDateExpired = currentDate > endPurchaseDate;
-
-  if (isSoldOut) {
-    // Llamar a la función para bloquear el evento por falta de cupo
-    blockEvent(event._id);  // Asegúrate de que este método realmente actualiza el estado en el backend
-    return { blocked: true, message: 'Evento lleno', status: 'blocked' };
-  } else if (isDateExpired) {
-    // Bloquear el evento por fecha límite de compra
-    blockEvent(event._id);  // Asegúrate de que este método realmente actualiza el estado en el backend
-    return { blocked: true, message: 'Plazo de compra finalizado', status: 'blocked' };
-  } else {
-    return { blocked: false, status: 'available' };
-  }
-};
-
-
-
-const filterEvents = () => {
-  const currentDate = new Date();
-
-  if (viewAvailable) {
-    // Mostrar solo eventos disponibles
-    return events.filter(event => !isEventBlocked(event).blocked);
-  } else {
-    // Mostrar eventos bloqueados (eventos llenos o por fin de plazo)
-    return events.filter(event => {
-      const isBlocked = isEventBlocked(event);
-      const blockDate = new Date(event.updatedAt); // Tomar la fecha en que fue actualizado a "blocked"
-      const sevenDaysLater = new Date(blockDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 días después
-
-      // Mostrar el evento solo si han pasado menos de 7 días desde que fue bloqueado
-      return isBlocked.blocked && currentDate <= sevenDaysLater;
-    });
-  }
-};
-
-
-
+  };
 
   const filteredEvents = filterEvents();
-
-  // Calcular los eventos de la página actual
   const indexOfLastEvent = currentPage * eventsPerPage;
-  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-  const currentEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+  const currentEvents = filteredEvents.slice(indexOfLastEvent - eventsPerPage, indexOfLastEvent);
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '70vh' }}>
+        <div className="text-white text-center">
+          <div className="spinner-border text-light" role="status" />
+          <p className="mt-3">Cargando eventos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="event-page-container">
       <div className="button-group">
-        <button
-          className={viewAvailable ? 'active' : ''}
-          onClick={() => setViewAvailable(true)}
-        >
-          Eventos disponibles
-        </button>
-        <button
-          className={!viewAvailable ? 'active' : ''}
-          onClick={() => setViewAvailable(false)}
-        >
-          Eventos no disponibles
-        </button>
+        <button className={viewAvailable ? 'active' : ''} onClick={() => setViewAvailable(true)}>Eventos disponibles</button>
+        <button className={!viewAvailable ? 'active' : ''} onClick={() => setViewAvailable(false)}>Eventos no disponibles</button>
       </div>
-  
+
       {!selectedEvent ? (
-        filteredEvents.length > 0 ? ( // Verificar si hay eventos filtrados
+        filteredEvents.length > 0 ? (
           <div className="pagination-container">
-            {/* Flecha Izquierda */}
             {currentPage > 1 && (
-              <button
-                className="prev-arrow"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                &#10094; {/* Flecha izquierda */}
-              </button>
+              <button className="prev-arrow" onClick={() => setCurrentPage(currentPage - 1)}>&#10094;</button>
             )}
-  
+
             <div className="card-product-container">
               {currentEvents.map((event) => {
                 const blockStatus = isEventBlocked(event);
                 const warningData = getWarningMessage(event);
-  
+                const locationParts = event.location.split(',').slice(-2).join(', ');
+
                 return (
-                  <div
-                    key={event._id}
-                    className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}
-                  >
-                    <img
-                      src={event.coverImage ? event.coverImage: `${API_URL}/uploads/notfound.png`}
-                      alt={event.name}
-                      style={{ width: '100%' }}
-                    />
+                  <div key={event._id} className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}>
+                    <img src={event.coverImage || `${API_URL}/uploads/notfound.png`} alt={event.name} />
                     <h3>{event.name}</h3>
-  
-                    {/* Mostrar iconos de advertencia si hay warning */}
-                    {warningData && warningData.warnings && (
+
+                    {warningData && (
                       <div className="warning-icon-wrapper">
-                        {warningData.warnings.map((warning, index) => {
-                          const isSevere = warning.severity === 'severe';
-  
-                          // Mostrar icono de calendario para advertencias de cierre de compra
-                          if (warning.type === 'cierre') {
-                            return (
-                              <div key={index} className="warning-icon-container">
-                                <FontAwesomeIcon
-                                  icon={faCalendarAlt}
-                                  className={`warning-icon ${isSevere ? 'warning-severe-icon' : 'warning-mild-icon'}`}
-                                />
-                                <span className="tooltip-text">{warning.message}</span>
-                              </div>
-                            );
-                          }
-  
-                          // Mostrar icono de cupos para advertencias de capacidad
-                          if (warning.type === 'cupos') {
-                            return (
-                              <div key={index} className="warning-icon-container">
-                                <FontAwesomeIcon
-                                  icon={faUsers}
-                                  className={`warning-icon ${isSevere ? 'warning-severe-icon' : 'warning-mild-icon'}`}
-                                />
-                                <span className="tooltip-text">{warning.message}</span>
-                              </div>
-                            );
-                          }
-  
-                          return null;
-                        })}
+                        {warningData.warnings.map((warning, i) => (
+                          <div key={i} className="warning-icon-container">
+                            <FontAwesomeIcon
+                              icon={warning.type === 'cierre' ? faCalendarAlt : faUsers}
+                              className={`warning-icon pulse ${warning.severity === 'severe' ? 'warning-severe-icon' : 'warning-mild-icon'}`}
+                            />
+                            <span className="tooltip-text">{warning.message}</span>
+                          </div>
+                        ))}
+                        <p className="text-white"><strong>Faltan:</strong> {warningData.daysRemaining} días</p>
                       </div>
                     )}
-  
-                    {/* Solo abreviar la descripción */}
+
                     <p>{event.description.length > 25 ? `${event.description.substring(0, 25)}...` : event.description}</p>
-  
-                    {/* Resto de los textos completos */}
-                    <p>
-                      <strong>Inicio: </strong>
-                      {event.startDate
-                        ? new Date(event.startDate).toLocaleDateString('en-GB', {
-                            timeZone: 'UTC',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                        : 'Fecha no disponible'}
-                    </p>
+                    <p><strong>Inicio:</strong> {new Date(event.startDate).toLocaleDateString('es-AR')}</p>
                     <p><strong>Precio:</strong> ${event.price}</p>
                     <p><strong>Capacidad:</strong> {event.capacity}</p>
-                    <p><strong>Ubicación:</strong> {event.location}</p>
-                    <p>
-                      <strong>Cierre de compra: </strong>
-                      {event.endPurchaseDate
-                        ? new Date(event.endPurchaseDate).toLocaleDateString('en-GB', {
-                            timeZone: 'UTC',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                          })
-                        : 'Fecha no disponible'}
-                    </p>
-                    {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.reason}</strong></p>}
-  
+                    <p><strong>Ubicación:</strong> {locationParts}</p>
+                    <p><strong>Cierre de compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString('es-AR')}</p>
+
+                    {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.message}</strong></p>}
+
                     <button
                       className="button"
                       onClick={() => handleSelectEvent(event)}
@@ -324,31 +187,19 @@ const filterEvents = () => {
                 );
               })}
             </div>
-  
-            {/* Flecha Derecha */}
-            {currentPage < Math.ceil(filteredEvents.length / 3) && currentEvents.length === 3
- && ( // Condición para no avanzar si no hay más eventos
-              <button
-                className="next-arrow"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentEvents.length === 0 || currentPage === Math.ceil(filteredEvents.length / currentEvents.length)}
-              >
-                &#10095; {/* Flecha derecha */}
-              </button>
+
+            {currentPage < Math.ceil(filteredEvents.length / eventsPerPage) && (
+              <button className="next-arrow" onClick={() => setCurrentPage(currentPage + 1)}>&#10095;</button>
             )}
           </div>
         ) : (
-          <p>No encontramos nada...</p> // Mensaje si no hay eventos
+          <p className="text-white text-center">No encontramos nada...</p>
         )
       ) : (
-        <div>
-          <TransactionForm event={selectedEvent} />
-        </div>
+        <TransactionForm event={selectedEvent} />
       )}
     </div>
   );
-  
-  
 };
 
 export default HomePage;
