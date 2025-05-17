@@ -59,11 +59,15 @@ const VerificationResult = () => {
                 <hr />
                 <h6>🧾 Menús seleccionados:</h6>
                 <ul>
-                  {Object.entries(transactionData.selectedMenus).map(([date, menu], index) => (
-                    <li key={index}>
-                      <strong>{new Date(date).toLocaleString("es-AR")}:</strong> {menu}
-                    </li>
-                  ))}
+                {Object.entries(transactionData.selectedMenus).map(([rawDate, menu], index) => {
+                    const fixedDate = rawDate.replace('_t', 'T').replace('_z', 'Z').replace(/_/g, ':');
+                    const parsedDate = new Date(fixedDate);
+                    return (
+                      <li key={index}>
+                        <strong>{isNaN(parsedDate) ? 'Fecha inválida' : parsedDate.toLocaleString("es-AR")}:</strong> {menu}
+                      </li>
+                    );
+                  })}
                 </ul>
               </>
             )}

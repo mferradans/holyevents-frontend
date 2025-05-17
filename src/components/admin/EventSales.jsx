@@ -16,7 +16,9 @@ const EventSales = () => {
 
   useEffect(() => {
     fetchSales();
-
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -31,8 +33,17 @@ const EventSales = () => {
       const response = await axios.get(`${API_URL}/api/events/${eventId}/sales`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSales(response.data.sales);
-      setEventName(response.data.eventName);
+      let ventas = response.data.sales;
+      if (highlightId) {
+        const index = ventas.findIndex(v => v._id === highlightId);
+        if (index > -1) {
+          const [highlighted] = ventas.splice(index, 1);
+          ventas.unshift(highlighted);
+          setSearchTerm(`${highlighted.name} ${highlighted.lastName}`);
+        }
+      }
+      setSales(ventas);
+            setEventName(response.data.eventName);
     } catch (error) {
       console.error('Error al obtener las ventas del evento:', error);
     }
