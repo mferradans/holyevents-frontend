@@ -10,22 +10,31 @@ const EventSales = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [highlightId, setHighlightId] = useState(null); // ✅ nuevo
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    fetchSales();
     const urlParams = new URLSearchParams(window.location.search);
-    const highlightId = urlParams.get('highlight');
-    
+    const highlightParam = urlParams.get('highlight');
+    if (highlightParam) {
+      setHighlightId(highlightParam); // ✅ almacenar correctamente
+    }
+  }, []);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchSales();
+    }
+
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [eventId]);
+  }, [eventId, highlightId]); // ✅ importante
 
   const fetchSales = async () => {
     try {
@@ -33,7 +42,9 @@ const EventSales = () => {
       const response = await axios.get(`${API_URL}/api/events/${eventId}/sales`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       let ventas = response.data.sales;
+
       if (highlightId) {
         const index = ventas.findIndex(v => v._id === highlightId);
         if (index > -1) {
@@ -42,8 +53,9 @@ const EventSales = () => {
           setSearchTerm(`${highlighted.name} ${highlighted.lastName}`);
         }
       }
+
       setSales(ventas);
-            setEventName(response.data.eventName);
+      setEventName(response.data.eventName);
     } catch (error) {
       console.error('Error al obtener las ventas del evento:', error);
     }
