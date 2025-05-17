@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Container, Card, Alert, Button } from 'react-bootstrap';
 import { DateTime } from 'luxon';
-import 'luxon/locale/es';
 
 const VerificationResult = () => {
   const location = useLocation();
