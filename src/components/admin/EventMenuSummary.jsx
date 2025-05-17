@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance.js';
-import { Container, Table, Button } from 'react-bootstrap';
+import { Container, Table, Button, Row, Col } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 
 const EventMenuSummary = () => {
@@ -36,10 +36,8 @@ const EventMenuSummary = () => {
         Object.entries(selected).forEach(([momentKey, menu]) => {
           if (!menu) return;
 
-          // Conteo global
           globalCounts[menu] = (globalCounts[menu] || 0) + 1;
 
-          // Conteo por momento
           if (!groupedByMoment[momentKey]) groupedByMoment[momentKey] = {};
           groupedByMoment[momentKey][menu] = (groupedByMoment[momentKey][menu] || 0) + 1;
         });
@@ -59,38 +57,28 @@ const EventMenuSummary = () => {
       .toFormat('cccc dd-MM, HH:mm');
 
   const totalMenus = Object.values(menuCounts).reduce((acc, val) => acc + val, 0);
-  const topMenu = Object.entries(menuCounts).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <Container>
-      <h2 className="my-4 text-white">Resumen de Menús del Evento: {eventName}</h2>
+    <Container className="text-white">
+      <h2 className="my-4">Resumen de Menús del Evento: {eventName}</h2>
 
-      <Button 
-        variant="outline-light" 
+      <Button
+        variant="outline-light"
         className="mb-4"
         onClick={() => navigate(-1)}
       >
         Volver a Ventas
       </Button>
 
-      <p className="text-white">
-        <strong>Total de menús vendidos:</strong> {totalMenus}
-      </p>
+      <p><strong>Total de menús vendidos:</strong> {totalMenus}</p>
 
-      {topMenu && (
-        <p className="text-white">
-          <strong>Menú más elegido:</strong> {topMenu[0]} ({topMenu[1]} ventas)
-        </p>
-      )}
-
-      {/* TABLA GENERAL */}
-      <h4 className="text-white mt-4">Totales por Menú</h4>
+      {/* Tabla global */}
+      <h4 className="mt-4">Totales por Menú</h4>
       <Table striped bordered hover variant="dark">
         <thead>
           <tr>
             <th>Menú</th>
             <th>Cantidad Vendida</th>
-            <th>% del total</th>
           </tr>
         </thead>
         <tbody>
@@ -100,39 +88,43 @@ const EventMenuSummary = () => {
               <tr key={menu}>
                 <td>{menu}</td>
                 <td>{count}</td>
-                <td>{((count / totalMenus) * 100).toFixed(1)}%</td>
               </tr>
             ))}
         </tbody>
       </Table>
 
-      {/* TABLAS POR MOMENTO */}
-      <h4 className="text-white mt-5">Detalle por Momento de Comida</h4>
-      {Object.entries(menuByMoment)
-        .sort(([a], [b]) => new Date(a.replace('_t', 'T').replace('_z', 'Z')) - new Date(b.replace('_t', 'T').replace('_z', 'Z')))
-        .map(([moment, menus]) => (
-          <div key={moment} className="mb-4">
-            <h5 className="text-info">{formatMoment(moment)}</h5>
-            <Table striped bordered hover variant="secondary">
-              <thead>
-                <tr>
-                  <th>Menú</th>
-                  <th>Cantidad</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(menus)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([menu, count]) => (
-                    <tr key={menu}>
-                      <td>{menu}</td>
-                      <td>{count}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </Table>
-          </div>
-        ))}
+      {/* Tablas por momento en grilla de 2 columnas en escritorio */}
+      <h4 className="mt-5">Detalle por Momento de Comida</h4>
+      <Row className="g-4">
+        {Object.entries(menuByMoment)
+          .sort(([a], [b]) =>
+            new Date(a.replace('_t', 'T').replace('_z', 'Z')) -
+            new Date(b.replace('_t', 'T').replace('_z', 'Z'))
+          )
+          .map(([moment, menus]) => (
+            <Col xs={12} md={6} key={moment}>
+              <h5 className="text-white">{formatMoment(moment)}</h5>
+              <Table striped bordered hover variant="dark">
+                <thead>
+                  <tr>
+                    <th>Menú</th>
+                    <th>Cantidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(menus)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([menu, count]) => (
+                      <tr key={menu}>
+                        <td>{menu}</td>
+                        <td>{count}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            </Col>
+          ))}
+      </Row>
     </Container>
   );
 };
