@@ -11,49 +11,20 @@ const SuccessPage = () => {
   const { width, height } = useWindowSize();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const queryParams = new URLSearchParams(location.search);
   const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
     const transactionIdParam = queryParams.get('transactionId');
-    const paymentIdParam = queryParams.get('payment_id');
-
-    console.log("🔎 URL Search Params:", location.search);
-    console.log("🔍 transactionId:", transactionIdParam);
-    console.log("🔍 payment_id:", paymentIdParam);
 
     if (transactionIdParam) {
-      console.log("✅ transactionId directo desde la URL");
+      console.log("✅ transactionId recibido:", transactionIdParam);
       setTransactionId(transactionIdParam);
-      return;
-    }
-
-    if (paymentIdParam) {
-      console.log("📡 Buscando transacción con paymentId:", paymentIdParam);
-      fetchTransaction(paymentIdParam);
-      return;
-    }
-
-    console.warn("❌ No hay transactionId ni payment_id en la URL");
-    navigate('/');
-  }, [location.search]);
-
-  const fetchTransaction = async (paymentId) => {
-    try {
-      const res = await fetch(`${API_URL}/get_transaction?paymentId=${paymentId}`);
-      const data = await res.json();
-      if (data && data._id) {
-        console.log("✅ Transacción encontrada:", data._id);
-        setTransactionId(data._id);
-      } else {
-        console.warn("⚠️ Transacción no encontrada en el backend");
-        navigate('/');
-      }
-    } catch (err) {
-      console.error("❌ Error al buscar transacción:", err);
+    } else {
+      console.warn("❌ transactionId no presente en la URL");
       navigate('/');
     }
-  };
+  }, [location.search, navigate]);
 
   const handleDownload = () => {
     if (!transactionId) return;
