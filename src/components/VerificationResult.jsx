@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Container, Card, Alert, Button } from 'react-bootstrap';
+import { DateTime } from 'luxon';
+import 'luxon/locale/es';
 
 const VerificationResult = () => {
   const location = useLocation();
@@ -12,7 +14,6 @@ const VerificationResult = () => {
   const [message, setMessage] = useState('Cargando...');
   const [transactionData, setTransactionData] = useState({});
   const navigate = useNavigate();
-
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -40,6 +41,13 @@ const VerificationResult = () => {
     }
   }, [transactionId]);
 
+  const formatDate = (isoString) => {
+    return DateTime.fromISO(isoString.replace('_t', 'T').replace('_z', 'Z'), { zone: 'utc' })
+      .setZone('America/Argentina/Buenos_Aires')
+      .setLocale('es')
+      .toFormat('cccc dd-MM, HH:mm');
+  };
+
   return (
     <Container className="mt-5 mb-5 d-flex flex-column align-items-center justify-content-start" style={{ minHeight: '80vh', color: 'white' }}>
       {status === 'success' ? (
@@ -51,7 +59,7 @@ const VerificationResult = () => {
             <p><strong>Nombre:</strong> {transactionData.lastName}, {transactionData.name}</p>
             <p><strong>Email:</strong> {transactionData.email}</p>
             <p><strong>Precio total:</strong> ${transactionData.price}</p>
-            <p><strong>Fecha de compra:</strong> {new Date(transactionData.transactionDate).toLocaleDateString("es-AR")}</p>
+            <p><strong>Fecha de compra:</strong> {formatDate(transactionData.transactionDate)}</p>
             <p><strong>ID del ticket:</strong> {transactionData.transactionId}</p>
 
             {transactionData.selectedMenus && Object.keys(transactionData.selectedMenus).length > 0 && (
@@ -59,15 +67,11 @@ const VerificationResult = () => {
                 <hr />
                 <h6>🧾 Menús seleccionados:</h6>
                 <ul>
-                {Object.entries(transactionData.selectedMenus).map(([rawDate, menu], index) => {
-                    const fixedDate = rawDate.replace('_t', 'T').replace('_z', 'Z').replace(/_/g, ':');
-                    const parsedDate = new Date(fixedDate);
-                    return (
-                      <li key={index}>
-                        <strong>{isNaN(parsedDate) ? 'Fecha inválida' : parsedDate.toLocaleString("es-AR")}:</strong> {menu}
-                      </li>
-                    );
-                  })}
+                  {Object.entries(transactionData.selectedMenus).map(([rawDate, menu], index) => (
+                    <li key={index}>
+                      <strong>{formatDate(rawDate)}:</strong> {menu}
+                    </li>
+                  ))}
                 </ul>
               </>
             )}

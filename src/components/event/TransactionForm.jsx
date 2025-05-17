@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
-import { DateTime } from 'luxon'; // ✅ Importamos Luxon
+import { DateTime } from 'luxon'; // ✅ Luxon para zona horaria
+import 'luxon/locale/es'; // ✅ Idioma español
 
 const TransactionForm = ({ event, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -14,11 +15,17 @@ const TransactionForm = ({ event, onSubmit }) => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ Función para formatear fecha con zona horaria correcta
+  // ✅ Función para poner la primera letra en mayúscula
+  const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+  // ✅ Formatear fecha con zona y en español
   const formatDate = (isoString) => {
-    return DateTime.fromISO(isoString, { zone: 'utc' }) // usar UTC puro
-      .setZone('America/Argentina/Buenos_Aires')         // forzar zona argentina
-      .toFormat("cccc dd-MM, HH:mm");                    // Ej: Viernes 18-07, 23:00
+    const fecha = DateTime.fromISO(isoString, { zone: 'utc' })
+      .setZone('America/Argentina/Buenos_Aires')
+      .setLocale('es')
+      .toFormat("cccc dd-MM, HH:mm");
+
+    return capitalizar(fecha);
   };
 
   const handleChange = (e) => {
@@ -139,9 +146,12 @@ const TransactionForm = ({ event, onSubmit }) => {
 
             const menuText = event.hasMenu && event.menuMoments.length > 0
               ? Object.entries(selectedMenus).map(([key, value]) => {
-                  const readable = DateTime.fromISO(key, { zone: 'utc' })
-                    .setZone('America/Argentina/Buenos_Aires')
-                    .toFormat("cccc dd-MM, HH:mm");
+                  const readable = capitalizar(
+                    DateTime.fromISO(key, { zone: 'utc' })
+                      .setZone('America/Argentina/Buenos_Aires')
+                      .setLocale('es')
+                      .toFormat("cccc dd-MM, HH:mm")
+                  );
                   return `• ${readable}: ${value}`;
                 }).join('\n')
               : 'Sin menú';

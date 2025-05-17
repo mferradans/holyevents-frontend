@@ -4,6 +4,7 @@ import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
 import FormData from 'form-data';
+import 'luxon/locale/es';
 import { DateTime } from 'luxon'; // ✅ agregado para zona horaria
 
 const EventForm = () => {
