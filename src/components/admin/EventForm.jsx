@@ -4,6 +4,7 @@ import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
 import FormData from 'form-data';
+import { DateTime } from 'luxon'; // ✅ agregado para zona horaria
 
 const EventForm = () => {
   const { id } = useParams();
@@ -68,10 +69,16 @@ const EventForm = () => {
   const handleAddMenuMoment = () => {
     if (!newMenuMoment.dateTime || !newMenuMoment.menuOptions) return;
 
+    // ✅ Convertimos la hora local a UTC antes de guardar
+    const dateTimeUTC = DateTime
+      .fromISO(newMenuMoment.dateTime, { zone: 'America/Argentina/Buenos_Aires' })
+      .toUTC()
+      .toISO();
+
     setFormData({
       ...formData,
       menuMoments: [...formData.menuMoments, {
-        dateTime: newMenuMoment.dateTime,
+        dateTime: dateTimeUTC,
         menuOptions: newMenuMoment.menuOptions.split(',').map(opt => opt.trim()),
       }],
     });
