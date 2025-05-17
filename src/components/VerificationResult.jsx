@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Card, Alert } from 'react-bootstrap';
+import { Container, Card, Alert, Button } from 'react-bootstrap';
 
 const VerificationResult = () => {
   const location = useLocation();
@@ -11,6 +11,8 @@ const VerificationResult = () => {
   const [status, setStatus] = useState(null);
   const [message, setMessage] = useState('Cargando...');
   const [transactionData, setTransactionData] = useState({});
+  const navigate = useNavigate();
+
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
@@ -18,12 +20,11 @@ const VerificationResult = () => {
       try {
         const response = await axios.get(`${API_URL}/verify_transaction/${transactionId}`);
         if (response.data.success) {
-          setStatus('success');
           setTransactionData(response.data);
-          
+          setStatus('success');
         } else {
           setStatus('error');
-          setMessage('Transacción no encontrada o no válida.');
+          setMessage(response.data.message || 'Transacción no válida.');
         }
       } catch (error) {
         setStatus('error');
@@ -39,31 +40,49 @@ const VerificationResult = () => {
     }
   }, [transactionId]);
 
-
   return (
-    <Container className="d-flex mt-5 align-items-center flex-column" style={{ height: '100vh', color: 'white', textAlign: 'center' }}>
+    <Container className="mt-5 mb-5 d-flex flex-column align-items-center justify-content-start" style={{ minHeight: '80vh', color: 'white' }}>
       {status === 'success' ? (
-        <>
-          <Alert variant="success">
-            <h2>¡Compra Verificada!</h2>
-          </Alert>
-          <p>
-            Compra válida hecha por <strong>{transactionData.lastName}, {transactionData.name}.</strong> 
-          </p>
-          {transactionData.menu && transactionData.menu !== 'Sin menú' && (
-            <p>Menú seleccionado: <strong>{transactionData.menu}</strong>.</p>
-          )}
-                    <p>
-            Ticket número: <strong>{transactionData.transactionId}</strong> 
-          </p>
-        </>
+        <Card className="bg-dark text-white w-100" style={{ maxWidth: '600px' }}>
+          <Card.Header className="bg-success text-white text-center">
+            <h4>✔ Compra verificada</h4>
+          </Card.Header>
+          <Card.Body>
+            <p><strong>Nombre:</strong> {transactionData.lastName}, {transactionData.name}</p>
+            <p><strong>Email:</strong> {transactionData.email}</p>
+            <p><strong>Precio total:</strong> ${transactionData.price}</p>
+            <p><strong>Fecha de compra:</strong> {new Date(transactionData.transactionDate).toLocaleDateString("es-AR")}</p>
+            <p><strong>ID del ticket:</strong> {transactionData.transactionId}</p>
+
+            {transactionData.selectedMenus && Object.keys(transactionData.selectedMenus).length > 0 && (
+              <>
+                <hr />
+                <h6>🧾 Menús seleccionados:</h6>
+                <ul>
+                  {Object.entries(transactionData.selectedMenus).map(([date, menu], index) => (
+                    <li key={index}>
+                      <strong>{new Date(date).toLocaleString("es-AR")}:</strong> {menu}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            <div className="d-grid mt-4">
+              <Button 
+                variant="outline-info" 
+                onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
+              >
+                Ver esta venta en lista
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
       ) : (
-        <>
-          <Alert variant="danger">
-            <h2>Error en la Verificación</h2>
-          </Alert>
+        <Alert variant="danger" className="text-center w-100" style={{ maxWidth: '600px' }}>
+          <h4>Error en la verificación</h4>
           <p>{message}</p>
-        </>
+        </Alert>
       )}
     </Container>
   );
