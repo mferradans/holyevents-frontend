@@ -29,8 +29,10 @@ const SuccessPage = () => {
     }
 
     if (paymentIdParam) {
-      console.log("📡 Buscando transacción con paymentId:", paymentIdParam);
-      fetchTransaction(paymentIdParam);
+      console.log("⌛ Esperando 6 segundos antes de buscar transacción con paymentId:", paymentIdParam);
+      setTimeout(() => {
+        fetchTransaction(paymentIdParam);
+      }, 6000);
       return;
     }
 
