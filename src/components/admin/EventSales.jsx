@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from '../../utils/axiosInstance.js';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Container, Button, Form, Card } from 'react-bootstrap';
+import { DateTime } from 'luxon';
 
 const EventSales = () => {
   const { eventId } = useParams();
@@ -10,7 +11,7 @@ const EventSales = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [highlightId, setHighlightId] = useState(null); // ✅ nuevo
+  const [highlightId, setHighlightId] = useState(null);
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -19,7 +20,7 @@ const EventSales = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const highlightParam = urlParams.get('highlight');
     if (highlightParam) {
-      setHighlightId(highlightParam); // ✅ almacenar correctamente
+      setHighlightId(highlightParam);
     }
   }, []);
 
@@ -34,7 +35,7 @@ const EventSales = () => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [eventId, highlightId]); // ✅ importante
+  }, [eventId, highlightId]);
 
   const fetchSales = async () => {
     try {
@@ -72,6 +73,13 @@ const EventSales = () => {
     const fullName = `${sale.name} ${sale.lastName}`.toLowerCase();
     return fullName.includes(searchTerm.toLowerCase().trim());
   });
+
+  const formatDateTime = (iso) => {
+    return DateTime.fromISO(iso, { zone: 'utc' })
+      .setZone('America/Argentina/Buenos_Aires')
+      .setLocale('es')
+      .toFormat('cccc dd-MM, HH:mm');
+  };
 
   return (
     <Container>
@@ -129,7 +137,7 @@ const EventSales = () => {
                   <td>{sale.lastName}</td>
                   <td>{sale.email}</td>
                   <td>{sale.tel || "No proporcionado"}</td>
-                  <td>{new Date(sale.transactionDate).toLocaleDateString('es-AR')}</td>
+                  <td>{formatDateTime(sale.transactionDate)}</td>
                   <td>
                     <Button 
                       variant="outline-info" 
@@ -142,10 +150,9 @@ const EventSales = () => {
                       <ul className="mt-2">
                         {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => {
                           const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
-                          const date = new Date(fixedMoment);
                           return (
                             <li key={moment}>
-                              {isNaN(date) ? 'Fecha inválida' : `${date.toLocaleString('es-AR')}: ${menu}`}
+                              {`${formatDateTime(fixedMoment)}: ${menu}`}
                             </li>
                           );
                         })}
@@ -172,7 +179,7 @@ const EventSales = () => {
                   <Card.Text>
                     <strong>Email:</strong> {sale.email}<br />
                     <strong>Teléfono:</strong> {sale.tel || "No proporcionado"}<br />
-                    <strong>Fecha de Compra:</strong> {new Date(sale.transactionDate).toLocaleDateString('es-AR')}<br />
+                    <strong>Fecha de Compra:</strong> {formatDateTime(sale.transactionDate)}<br />
                     <strong>Tipo:</strong> {sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}
                   </Card.Text>
                   <Button 
@@ -186,10 +193,9 @@ const EventSales = () => {
                     <ul className="mt-2">
                       {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => {
                         const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
-                        const date = new Date(fixedMoment);
                         return (
                           <li key={moment}>
-                            {isNaN(date) ? 'Fecha inválida' : `${date.toLocaleString('es-AR')}: ${menu}`}
+                            {`${formatDateTime(fixedMoment)}: ${menu}`}
                           </li>
                         );
                       })}

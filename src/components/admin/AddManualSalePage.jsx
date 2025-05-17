@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance.js';
 import { Form, Button, Spinner, Container, Row, Col } from 'react-bootstrap';
+import { DateTime } from 'luxon';
 
 const AddManualSalePage = () => {
   const { eventId } = useParams();
@@ -126,7 +127,12 @@ const AddManualSalePage = () => {
             <h5 className="mt-4">Seleccionar Menús:</h5>
             {event.menuMoments.map((moment, index) => (
               <Form.Group key={index} className="mt-2">
-                <Form.Label>{new Date(moment.dateTime).toLocaleString()}</Form.Label>
+              <Form.Label>
+                {DateTime.fromISO(moment.dateTime, { zone: 'utc' })
+                  .setZone('America/Argentina/Buenos_Aires')
+                  .setLocale('es')
+                  .toFormat('cccc dd-MM, HH:mm')}
+              </Form.Label>
                 <Form.Select
                   value={formData.selectedMenus[moment.dateTime] || ''}
                   onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
