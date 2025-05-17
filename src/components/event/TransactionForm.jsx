@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 import { DateTime } from 'luxon'; // ✅ Luxon para zona horaria
-import 'luxon/locale/es'; // ✅ Idioma español
 
 const TransactionForm = ({ event, onSubmit }) => {
   const [formData, setFormData] = useState({

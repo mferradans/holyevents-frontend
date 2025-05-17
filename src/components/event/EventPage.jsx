@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 import { DateTime } from 'luxon';
-import 'luxon/locale/es';
 
 const EventPage = () => {
   const { id } = useParams();
