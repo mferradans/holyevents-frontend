@@ -4,7 +4,7 @@ import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
 import FormData from 'form-data';
-import { DateTime } from 'luxon'; // ✅ agregado para zona horaria
+import { DateTime } from 'luxon';
 
 const EventForm = () => {
   const { id } = useParams();
@@ -28,6 +28,13 @@ const EventForm = () => {
   const [newMenuMoment, setNewMenuMoment] = useState({ dateTime: '', menuOptions: '' });
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const formatDateTime = (isoString) => {
+    return DateTime.fromISO(isoString, { zone: 'utc' })
+      .setZone('America/Argentina/Buenos_Aires')
+      .setLocale('es')
+      .toFormat('cccc dd-MM, HH:mm');
+  };
 
   useEffect(() => {
     if (id) {
@@ -69,7 +76,6 @@ const EventForm = () => {
   const handleAddMenuMoment = () => {
     if (!newMenuMoment.dateTime || !newMenuMoment.menuOptions) return;
 
-    // ✅ Convertimos la hora local a UTC antes de guardar
     const dateTimeUTC = DateTime
       .fromISO(newMenuMoment.dateTime, { zone: 'America/Argentina/Buenos_Aires' })
       .toUTC()
@@ -93,12 +99,10 @@ const EventForm = () => {
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-
     if (!file) return;
 
     const maxSize = 3 * 1024 * 1024;
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-
     if (!allowedTypes.includes(file.type)) {
       alert("Error: Solo se permiten imágenes en formato JPEG, JPG o PNG.");
       return;
@@ -120,10 +124,10 @@ const EventForm = () => {
         },
       });
       setFormData({ ...formData, coverImage: response.data.imageUrl, imageRemoved: false });
-      setIsImageUploading(false);
     } catch (error) {
       console.error("Error al cargar la imagen:", error);
       alert("Hubo un error al subir la imagen. Inténtalo nuevamente.");
+    } finally {
       setIsImageUploading(false);
     }
   };
@@ -136,7 +140,6 @@ const EventForm = () => {
     e.preventDefault();
 
     if (isImageUploading || isSubmitting) return;
-
     setIsSubmitting(true);
 
     try {
@@ -254,7 +257,7 @@ const EventForm = () => {
             {formData.menuMoments.map((moment, index) => (
               <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
                 <div>
-                  <strong>{new Date(moment.dateTime).toLocaleString()}</strong> - {moment.menuOptions.join(', ')}
+                  <strong>{formatDateTime(moment.dateTime)}</strong> - {moment.menuOptions.join(', ')}
                 </div>
                 <Button variant="danger" size="sm" onClick={() => handleRemoveMenuMoment(index)}>Eliminar</Button>
               </ListGroup.Item>
