@@ -46,6 +46,10 @@ const EventForm = () => {
           });
           const eventData = response.data;
 
+          const sortedMenuMoments = (eventData.menuMoments || []).sort((a, b) =>
+            new Date(a.dateTime) - new Date(b.dateTime)
+          );
+
           setFormData({
             name: eventData.name || '',
             location: eventData.location || '',
@@ -55,7 +59,7 @@ const EventForm = () => {
             endPurchaseDate: eventData.endPurchaseDate ? eventData.endPurchaseDate.split('T')[0] : '',
             capacity: eventData.capacity || '',
             hasMenu: eventData.hasMenu || false,
-            menuMoments: eventData.menuMoments || [],
+            menuMoments: sortedMenuMoments,
             coverImage: eventData.coverImage || '',
             imageRemoved: false,
           });
@@ -81,12 +85,16 @@ const EventForm = () => {
       .toUTC()
       .toISO();
 
+    const updatedMoments = [...formData.menuMoments, {
+      dateTime: dateTimeUTC,
+      menuOptions: newMenuMoment.menuOptions.split(',').map(opt => opt.trim()),
+    }];
+
+    const sortedMoments = updatedMoments.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
     setFormData({
       ...formData,
-      menuMoments: [...formData.menuMoments, {
-        dateTime: dateTimeUTC,
-        menuOptions: newMenuMoment.menuOptions.split(',').map(opt => opt.trim()),
-      }],
+      menuMoments: sortedMoments,
     });
 
     setNewMenuMoment({ dateTime: '', menuOptions: '' });
@@ -138,7 +146,6 @@ const EventForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (isImageUploading || isSubmitting) return;
     setIsSubmitting(true);
 
@@ -254,14 +261,24 @@ const EventForm = () => {
             </Col>
           </Row>
           <ListGroup className="mt-3">
-            {formData.menuMoments.map((moment, index) => (
-              <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                <div>
-                  <strong>{formatDateTime(moment.dateTime)}</strong> - {moment.menuOptions.join(', ')}
-                </div>
-                <Button variant="danger" size="sm" onClick={() => handleRemoveMenuMoment(index)}>Eliminar</Button>
-              </ListGroup.Item>
-            ))}
+            {formData.menuMoments
+              .slice()
+              .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
+              .map((moment, index) => {
+                const localFormatted = DateTime.fromISO(moment.dateTime, { zone: 'utc' })
+                  .setZone('America/Argentina/Buenos_Aires')
+                  .setLocale('es')
+                  .toFormat('cccc dd-MM, HH:mm');
+
+                return (
+                  <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{localFormatted}</strong> - {moment.menuOptions.join(', ')}
+                    </div>
+                    <Button variant="danger" size="sm" onClick={() => handleRemoveMenuMoment(index)}>Eliminar</Button>
+                  </ListGroup.Item>
+                );
+              })}
           </ListGroup>
         </>
       )}
