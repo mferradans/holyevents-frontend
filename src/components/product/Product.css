@@ -1,158 +1,156 @@
 /* Contenedor de las cards */
 .card-product-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-/* Estilos generales de las cards */
-.card {
-  background-color: rgb(18, 21, 23);
-  background-image: linear-gradient(to bottom, #182129, #121517);
-  border: 0.1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 10px;
-  padding: 10px;
-  margin: 10px;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  transition: border-color 0.3s ease, opacity 0.3s ease;
-  text-align: left;
-}
-
-.card:hover {
-  border-color: #3399ff !important;
-}
-
-.card img {
-  border-radius: 10px;
-  margin-bottom: 15px;
-  width: 100%;
-}
-
-.card h3 {
-  font-size: 1.45rem;
-  margin-bottom: 10px;
-  color: white;
-}
-
-.card p,
-.card h3,
-.card strong {
-  text-align: left;
-  color: white;
-  margin-bottom: 10px;
-  font-size: 1rem;
-  white-space: normal;
-}
-
-/* Botones */
-.card button {
-  background-color: #4bff33;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.card button:disabled {
-  background-color: gray;
-  cursor: not-allowed;
-}
-
-/* Cards bloqueadas */
-.card-blocked {
-  opacity: 0.5;
-  pointer-events: none;
-  border-color: gray !important;
-}
-
-.card-blocked:hover {
-  border-color: gray !important;
-}
-
-/* Colores en advertencias */
-.warning-severe:hover {
-  border-color: #ff3333 !important;
-}
-
-.warning-mild:hover {
-  border-color: #ffcc00 !important;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .card-product-container {
-    flex-direction: column;
-    align-items: center;
+    display: flex;
+    flex-wrap: wrap; /* Permitir que las cards se envuelvan */
+    justify-content: space-around; /* Centrar las cards */
+    margin-top: 20px;
+    /*justify-content: space-around;*/
+    /*width: 100%;*/
+    /*max-width: 1200px;*/ /* Limitar el tamaño del contenedor */
+    
   }
-
+  
+  /* Estilos para las cards */
   .card {
-    max-width: 100%;
-    margin: 10px 0;
-  }
+    background-color: rgb(18, 21, 23);
+    background-image: linear-gradient(to bottom, #182129, #121517);
+    border: 0.1px solid rgba(255, 255, 255, 0.1) !important; /* Borde blanco con alta prioridad */
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+    width: 100%;
+    width: 300px;
+    display: flex;
+    text-align: left; /* Alinea todo el texto dentro de la card a la izquierda */
 
-  .info-icon {
-    width: 45%;
-    margin: 5px 0;
+    flex-direction: column;
+    justify-content: space-between; /* Distribuye el contenido de arriba hacia abajo */
+    height: 100%; /* Asegura que todas las cards ocupen el mismo alto */
+    transition: border-color 0.3s ease, opacity 0.3s ease;
   }
+  
+  /* Hover para cambiar el borde */
+  .card:hover {
+    border-color: #3399ff !important; /* Neón azul al pasar el mouse */
+  }
+  
+  /* Imagen de las cards */
+  .card img {
+    border-radius: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  
+  /* Título de la card */
+  .card h3 {
+    font-size: 1.45rem;
+    margin-bottom: 10px;
+    color: white;
+  }
+  
+  /* Párrafos en las cards */
+  .card p {
+    font-size: 1rem;
+    color: white;
+    margin-bottom: 10px;
+    white-space: normal;
+    text-overflow: ellipsis;
+  }
+  .card p, 
+.card h3, 
+.card strong {
+  text-align: left; /* Asegura que los párrafos y los títulos dentro de la card estén alineados a la izquierda */
 }
+  /* Botones en las cards */
+  .card button {
+    background-color: #4bff33;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    
+    transition: background-color 0.3s ease;
+  }
+  
+  .card button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  
 
-/* Iconos de advertencia con tooltip */
+  
+  /* Advertencias: hover con borde */
+  .warning-severe:hover {
+    border-color: #ff3333 !important;
+  }
+  
+  .warning-mild:hover {
+    border-color: #ffcc00 !important;
+  }
+  
+  /* Cards bloqueadas */
+  .card-blocked {
+    opacity: 0.5;
+    pointer-events: none;
+    border-color: gray !important;
+  }
+  
+  .card-blocked:hover {
+    border-color: gray !important;
+  }
+  
+/* --- Responsividad para pantallas móviles --- */
+@media (max-width: 768px) {
+    .card-product-container {
+      flex-direction: column; /* Cards una debajo del otro en pantallas pequeñas */
+      align-items: center; /* Alineación centrada */
+    }
+  
+    .card {
+      max-width: 100%; /* Ocupa todo el ancho disponible en móviles */
+      margin: 10px 0; /* Margen vertical entre cards */
+    }
+  }
+  
+
+
+
+
+
+
+/* Wrapper para el icono de advertencia con tooltip */
 .warning-icon-wrapper {
-  position: relative;
-  display: inline-block;
-  min-height: 1px;
-}
-
-.warning-icon-container {
-  display: inline-flex;
-  align-items: center;
-  position: relative;
-}
-
-.warning-icon {
-  font-size: 1.2rem;
-  margin: 10px;
-  cursor: pointer;
-}
-
-.warning-severe-icon {
-  color: #ff3333;
-}
-
-.warning-mild-icon {
-  color: #ffcc00;
-}
-
-/* Animación de latido */
-.pulse {
-  animation: pulseAnimation 1.2s infinite;
-}
-
-@keyframes pulseAnimation {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.25); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Tooltip general */
+    position: relative;
+    display: inline-block;
+    min-height: 1px; /* Ajusta este valor según el tamaño del icono o advertencias */
+  }
+  
+  .warning-icon-container {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+  }
+  
+  .warning-icon {
+    font-size: 1.2rem;
+    margin: 10px;
+    cursor: pointer;
+  }
+  
+  /* Tooltip oculto por defecto */
+  /* Tooltip oculto por defecto */
 .tooltip-text {
   visibility: hidden;
   width: 200px;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro */
   color: #fff;
   text-align: center;
   border-radius: 5px;
   padding: 5px;
   position: absolute;
   z-index: 1;
-  bottom: 125%;
+  bottom: 125%; /* Posiciona el tooltip arriba del icono */
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
@@ -160,10 +158,11 @@
   font-size: 0.9rem;
 }
 
+/* Flecha del tooltip */
 .tooltip-text::after {
   content: '';
   position: absolute;
-  top: 100%;
+  top: 100%; /* Abajo del tooltip */
   left: 50%;
   margin-left: -5px;
   border-width: 5px;
@@ -171,28 +170,18 @@
   border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
 
-.tooltip-wrapper:hover .tooltip-text,
-.tooltip-wrapper:focus-within .tooltip-text {
+/* Mostrar el tooltip solo cuando se pasa el mouse sobre el icono */
+.warning-icon-container:hover .tooltip-text {
   visibility: visible;
   opacity: 1;
 }
 
-/* Íconos informativos debajo del nombre */
-.icon-info-wrapper {
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.info-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 5px 10px;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.info-icon svg {
-  font-size: 1.3rem;
-  margin-bottom: 3px;
-}
+  /* Estilos para el icono de advertencia en función del tipo */
+  .warning-severe-icon {
+    color: #ff3333; /* Color rojo para advertencias severas */
+  }
+  
+  .warning-mild-icon {
+    color: #ffcc00; /* Color amarillo para advertencias moderadas */
+  }
+  
