@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../utils/axiosInstance.js';
-import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap';
+import { Form, Button, Row, Col, ListGroup, Image } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import './EventForm.css';
 import FormData from 'form-data';
@@ -28,6 +28,9 @@ const EventForm = () => {
   const [newMenuMoment, setNewMenuMoment] = useState({ dateTime: '', menuOptions: '' });
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Para sugerencias de ubicación
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
 
   const formatDateTime = (isoString) => {
     return DateTime.fromISO(isoString, { zone: 'utc' })
@@ -75,6 +78,37 @@ const EventForm = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const handleLocationChange = async (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, location: value });
+
+    if (value.length < 3) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&addressdetails=1&limit=5&countrycodes=ar`,
+        {
+          headers: {
+            'User-Agent': 'mi-app-eventos/1.0',
+            'Accept-Language': 'es',
+          },
+        }
+      );
+      const data = await response.json();
+      setLocationSuggestions(data);
+    } catch (error) {
+      console.error('Error al buscar direcciones:', error);
+    }
+  };
+
+  const handleSelectLocation = (suggestion) => {
+    setFormData({ ...formData, location: suggestion.display_name });
+    setLocationSuggestions([]);
   };
 
   const handleAddMenuMoment = () => {
@@ -177,17 +211,35 @@ const EventForm = () => {
             <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
           </Form.Group>
         </Col>
-        <Col md={6}>
+        <Col md={6} style={{ position: 'relative' }}>
           <Form.Group controlId="formLocation">
             <Form.Label>Ubicación</Form.Label>
-            <Form.Control type="text" name="location" value={formData.location} onChange={handleChange} required />
+            <Form.Control
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleLocationChange}
+              autoComplete="off"
+              required
+            />
+            {locationSuggestions.length > 0 && (
+              <ListGroup style={{ position: 'absolute', zIndex: 1000, width: '100%' }}>
+                {locationSuggestions.map((suggestion, index) => (
+                  <ListGroup.Item key={index} action onClick={() => handleSelectLocation(suggestion)}>
+                    {suggestion.display_name}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            )}
           </Form.Group>
         </Col>
       </Row>
+
       <Form.Group controlId="formDescription" className="mt-3">
         <Form.Label>Descripción</Form.Label>
         <Form.Control as="textarea" name="description" value={formData.description} onChange={handleChange} required />
       </Form.Group>
+
       <Form.Group controlId="formCoverImage" className="mt-3">
         <Form.Label>Imagen de portada</Form.Label>
         <Form.Control type="file" onChange={handleFileChange} accept="image/*" />
@@ -203,6 +255,7 @@ const EventForm = () => {
           </div>
         )}
       </Form.Group>
+
       <Row className="mt-3">
         <Col md={6}>
           <Form.Group controlId="formPrice">
@@ -217,6 +270,7 @@ const EventForm = () => {
           </Form.Group>
         </Col>
       </Row>
+
       <Row className="mt-3">
         <Col md={6}>
           <Form.Group controlId="formStartDate">
@@ -231,6 +285,7 @@ const EventForm = () => {
           </Form.Group>
         </Col>
       </Row>
+
       <Form.Group controlId="formHasMenu" className="mt-3 d-flex align-items-center">
         <Form.Check
           type="checkbox"
@@ -240,6 +295,7 @@ const EventForm = () => {
           onChange={(e) => setFormData({ ...formData, hasMenu: e.target.checked })}
         />
       </Form.Group>
+
       {formData.hasMenu && (
         <>
           <h5 className="mt-3">Agregar Momentos de Comida</h5>
@@ -287,7 +343,7 @@ const EventForm = () => {
         {id ? 'Actualizar' : 'Crear'} Evento
       </Button>
 
-      <Button variant="secondary" className="mt-3" onClick={() => navigate('/admin/dashboard')}>
+      <Button variant="secondary" className="mt-3 ms-2" onClick={() => navigate('/admin/dashboard')}>
         Cancelar
       </Button>
     </Form>
