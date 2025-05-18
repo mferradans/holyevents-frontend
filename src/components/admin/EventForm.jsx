@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import axios from '../../utils/axiosInstance.js';
 import { Form, Button, Row, Col, Alert, ListGroup, Image } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -228,7 +228,112 @@ const EventForm = () => {
           </Form.Group>
         </Col>
       </Row>
-      {/* El resto del formulario se mantiene igual */}
+      <Form.Group controlId="formDescription" className="mt-3">
+        <Form.Label>Descripción</Form.Label>
+        <Form.Control as="textarea" name="description" value={formData.description} onChange={handleChange} required />
+      </Form.Group>
+      <Form.Group controlId="formCoverImage" className="mt-3">
+        <Form.Label>Imagen de portada</Form.Label>
+        <Form.Control type="file" onChange={handleFileChange} accept="image/*" />
+        {formData.coverImage && (
+          <div className="mt-2">
+            <Image
+              src={formData.coverImage}
+              alt="Vista previa"
+              thumbnail
+              style={{ maxWidth: '200px', height: 'auto' }}
+            />
+            <Button variant="danger" size="sm" className="mt-2" onClick={handleRemoveImage}>Eliminar imagen</Button>
+          </div>
+        )}
+      </Form.Group>
+      <Row className="mt-3">
+        <Col md={6}>
+          <Form.Group controlId="formPrice">
+            <Form.Label>Precio</Form.Label>
+            <Form.Control type="number" name="price" value={formData.price} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+        <Col md={6}>
+          <Form.Group controlId="formCapacity">
+            <Form.Label>Capacidad</Form.Label>
+            <Form.Control type="number" name="capacity" value={formData.capacity} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+      </Row>
+      <Row className="mt-3">
+        <Col md={6}>
+          <Form.Group controlId="formStartDate">
+            <Form.Label>Fecha de inicio</Form.Label>
+            <Form.Control type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+        <Col md={6}>
+          <Form.Group controlId="formEndPurchaseDate">
+            <Form.Label>Fecha finalización de compra</Form.Label>
+            <Form.Control type="date" name="endPurchaseDate" value={formData.endPurchaseDate} onChange={handleChange} required />
+          </Form.Group>
+        </Col>
+      </Row>
+      <Form.Group controlId="formHasMenu" className="mt-3 d-flex align-items-center">
+        <Form.Check
+          type="checkbox"
+          label="¿Tiene menú de comida?"
+          name="hasMenu"
+          checked={formData.hasMenu}
+          onChange={(e) => setFormData({ ...formData, hasMenu: e.target.checked })}
+        />
+      </Form.Group>
+      {formData.hasMenu && (
+        <>
+          <h5 className="mt-3">Agregar Momentos de Comida</h5>
+          <Row>
+            <Col md={5}>
+              <Form.Group controlId="menuDateTime">
+                <Form.Label>Fecha y Hora</Form.Label>
+                <Form.Control type="datetime-local" value={newMenuMoment.dateTime} onChange={(e) => setNewMenuMoment({ ...newMenuMoment, dateTime: e.target.value })} />
+              </Form.Group>
+            </Col>
+            <Col md={5}>
+              <Form.Group controlId="menuOptions">
+                <Form.Label>Menús (separados por coma)</Form.Label>
+                <Form.Control type="text" value={newMenuMoment.menuOptions} onChange={(e) => setNewMenuMoment({ ...newMenuMoment, menuOptions: e.target.value })} />
+              </Form.Group>
+            </Col>
+            <Col md={2} className="d-flex align-items-end">
+              <Button onClick={handleAddMenuMoment} className="mt-2">Agregar</Button>
+            </Col>
+          </Row>
+          <ListGroup className="mt-3">
+            {formData.menuMoments
+              .slice()
+              .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
+              .map((moment, index) => {
+                const localFormatted = DateTime.fromISO(moment.dateTime, { zone: 'utc' })
+                  .setZone('America/Argentina/Buenos_Aires')
+                  .setLocale('es')
+                  .toFormat('cccc dd-MM, HH:mm');
+
+                return (
+                  <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{localFormatted}</strong> - {moment.menuOptions.join(', ')}
+                    </div>
+                    <Button variant="danger" size="sm" onClick={() => handleRemoveMenuMoment(index)}>Eliminar</Button>
+                  </ListGroup.Item>
+                );
+              })}
+          </ListGroup>
+        </>
+      )}
+
+      <Button type="submit" className="mt-3" disabled={isImageUploading || isSubmitting}>
+        {id ? 'Actualizar' : 'Crear'} Evento
+      </Button>
+
+      <Button variant="secondary" className="mt-3" onClick={() => navigate('/admin/dashboard')}>
+        Cancelar
+      </Button>
     </Form>
   );
 };
