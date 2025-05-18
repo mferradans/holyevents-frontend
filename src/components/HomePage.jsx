@@ -6,6 +6,7 @@ import '../App.css';
 import TransactionForm from './event/TransactionForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faUsers, faClock, faMapMarkerAlt, faDollarSign } from '@fortawesome/free-solid-svg-icons';
+import { DateTime } from 'luxon';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
@@ -48,12 +49,11 @@ const HomePage = () => {
   }, []);
 
   const getWarningMessage = (event) => {
-    const remainingSpots = event.capacity - event.transactionCount;
-    const currentDate = new Date();
-    const endPurchaseDate = new Date(event.endPurchaseDate);
-    const timeDiff = endPurchaseDate - currentDate;
-    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
+    const endPurchase = DateTime.fromISO(event.endPurchaseDate).setZone('America/Argentina/Buenos_Aires');
+    const daysRemaining = Math.ceil(endPurchase.diff(now, 'days').days);
 
+    const remainingSpots = event.capacity - event.transactionCount;
     const quarterCapacity = event.capacity / 4;
     const halfCapacity = event.capacity / 2;
 
@@ -88,10 +88,10 @@ const HomePage = () => {
   };
 
   const isEventBlocked = (event) => {
-    const currentDate = new Date();
-    const endPurchaseDate = new Date(event.endPurchaseDate);
+    const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
+    const endPurchase = DateTime.fromISO(event.endPurchaseDate).setZone('America/Argentina/Buenos_Aires');
     const isSoldOut = event.transactionCount >= event.capacity;
-    const isDateExpired = currentDate > endPurchaseDate;
+    const isDateExpired = now > endPurchase;
 
     if (isSoldOut || isDateExpired) {
       blockEvent(event._id);
@@ -101,12 +101,12 @@ const HomePage = () => {
   };
 
   const filterEvents = () => {
-    const currentDate = new Date();
+    const now = DateTime.now().setZone('America/Argentina/Buenos_Aires');
     return events.filter((event) => {
       const blocked = isEventBlocked(event);
-      const blockTime = new Date(event.updatedAt);
-      const sevenDaysLater = new Date(blockTime.getTime() + 7 * 86400000);
-      return viewAvailable ? !blocked.blocked : blocked.blocked && currentDate <= sevenDaysLater;
+      const blockTime = DateTime.fromISO(event.updatedAt).setZone('America/Argentina/Buenos_Aires');
+      const sevenDaysLater = blockTime.plus({ days: 7 });
+      return viewAvailable ? !blocked.blocked : blocked.blocked && now <= sevenDaysLater;
     });
   };
 
@@ -161,7 +161,9 @@ const HomePage = () => {
                             <span className="tooltip-text">{warning.message}</span>
                           </div>
                         ))}
-                        <p className="text-white mt-1"><strong>Faltan:</strong> {warningData.daysRemaining} {warningData.daysRemaining === 1 ? 'día' : 'días'} para que cierre la venta</p>
+                        <p className="text-white mt-1">
+                          <strong>Faltan:</strong> {warningData.daysRemaining} {warningData.daysRemaining === 1 ? 'día' : 'días'} para que cierre la venta
+                        </p>
                       </div>
                     )}
 
@@ -169,7 +171,7 @@ const HomePage = () => {
                       <div className="info-icon tooltip-wrapper">
                         <FontAwesomeIcon icon={faCalendarAlt} />
                         <span className="tooltip-text">Inicio del evento</span>
-                        <p>{new Date(event.startDate).toLocaleDateString('es-AR')}</p>
+                        <p>{DateTime.fromISO(event.startDate).setZone('America/Argentina/Buenos_Aires').toFormat('dd/MM/yyyy')}</p>
                       </div>
 
                       <div className="info-icon tooltip-wrapper">
@@ -192,7 +194,7 @@ const HomePage = () => {
                     </div>
 
                     <p className="text-white mt-2">
-                      <strong>Cierre de compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString('es-AR')}
+                      <strong>Cierre de compra:</strong> {DateTime.fromISO(event.endPurchaseDate).setZone('America/Argentina/Buenos_Aires').toFormat('dd/MM/yyyy')}
                     </p>
 
                     {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.message}</strong></p>}
