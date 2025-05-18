@@ -105,14 +105,16 @@ const EventPage = () => {
           <p><strong>Ubicación:</strong> {event.location}</p>
 
           {/* Botón para ver en Google Maps */}
-          <Button
-            variant="outline-info"
-            size="sm"
-            className="mb-2"
-            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`, '_blank')}
-          >
-            Ver en Google Maps
-          </Button>
+                {coords && (
+        <Button
+          variant="outline-info"
+          size="sm"
+          className="mb-2"
+          onClick={() => window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lon}`, '_blank')}
+        >
+          Ver en Google Maps
+        </Button>
+      )}
 
           {/* Mapa Geoapify */}
           {coords && (
