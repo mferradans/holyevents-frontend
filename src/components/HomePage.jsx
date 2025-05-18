@@ -5,7 +5,7 @@ import './product/Product.css';
 import '../App.css';
 import TransactionForm from './event/TransactionForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faMapMarkerAlt, faMoneyBillWave, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faUsers, faClock, faMapMarkerAlt, faDollarSign } from '@fortawesome/free-solid-svg-icons';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
@@ -22,13 +22,16 @@ const HomePage = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/api/events`);
-      const eventsWithTransactionCount = await Promise.all(response.data.map(async (event) => {
-        const transactionResponse = await axios.get(`${API_URL}/api/events/${event._id}/transaction-count`);
-        const transactionCount = transactionResponse.data.transactionCount;
-        return { ...event, transactionCount };
-      }));
-      const sorted = eventsWithTransactionCount.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
-      setEvents(sorted);
+      const eventsWithTransactionCount = await Promise.all(
+        response.data.map(async (event) => {
+          const transactionResponse = await axios.get(`${API_URL}/api/events/${event._id}/transaction-count`);
+          const transactionCount = transactionResponse.data.transactionCount;
+          return { ...event, transactionCount };
+        })
+      );
+
+      const sortedEvents = eventsWithTransactionCount.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+      setEvents(sortedEvents);
     } catch (error) {
       console.error('Error al obtener los eventos:', error);
     } finally {
@@ -44,27 +47,83 @@ const HomePage = () => {
     fetchEvents();
   }, []);
 
+  const getWarningMessage = (event) => {
+    const remainingSpots = event.capacity - event.transactionCount;
+    const currentDate = new Date();
+    const endPurchaseDate = new Date(event.endPurchaseDate);
+    const timeDiff = endPurchaseDate - currentDate;
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+    const quarterCapacity = event.capacity / 4;
+    const halfCapacity = event.capacity / 2;
+
+    const warnings = [];
+    let className = '';
+
+    if (remainingSpots <= quarterCapacity) {
+      warnings.push({ type: 'cupos', message: '¡Muy pocos cupos disponibles!', severity: 'severe' });
+      className = 'warning-severe';
+    } else if (remainingSpots <= halfCapacity) {
+      warnings.push({ type: 'cupos', message: '¡Menos de la mitad de cupos disponibles!', severity: 'mild' });
+      if (!className) className = 'warning-mild';
+    }
+
+    if (daysRemaining <= 7) {
+      warnings.push({ type: 'cierre', message: '¡Menos de 1 semana para el cierre!', severity: 'severe' });
+      className = 'warning-severe';
+    } else if (daysRemaining <= 21) {
+      warnings.push({ type: 'cierre', message: '¡Menos de 3 semanas para el cierre!', severity: 'mild' });
+      if (!className) className = 'warning-mild';
+    }
+
+    return warnings.length > 0 ? { warnings, className, daysRemaining } : null;
+  };
+
+  const blockEvent = async (eventId) => {
+    try {
+      await axios.put(`${API_URL}/api/events/${eventId}/block`, { status: 'blocked' });
+    } catch (error) {
+      console.error('Error al bloquear el evento:', error);
+    }
+  };
+
   const isEventBlocked = (event) => {
-    const now = new Date();
-    return new Date(event.endPurchaseDate) < now || event.transactionCount >= event.capacity;
+    const currentDate = new Date();
+    const endPurchaseDate = new Date(event.endPurchaseDate);
+    const isSoldOut = event.transactionCount >= event.capacity;
+    const isDateExpired = currentDate > endPurchaseDate;
+
+    if (isSoldOut || isDateExpired) {
+      blockEvent(event._id);
+      return { blocked: true, message: isSoldOut ? 'Evento lleno' : 'Plazo de compra finalizado' };
+    }
+    return { blocked: false };
   };
 
-  const getDaysLeft = (endDate) => {
-    const now = new Date();
-    const end = new Date(endDate);
-    const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-    if (diff <= 0) return null;
-    return diff === 1 ? 'Falta 1 día' : `Faltan ${diff} días`;
+  const filterEvents = () => {
+    const currentDate = new Date();
+    return events.filter((event) => {
+      const blocked = isEventBlocked(event);
+      const blockTime = new Date(event.updatedAt);
+      const sevenDaysLater = new Date(blockTime.getTime() + 7 * 86400000);
+      return viewAvailable ? !blocked.blocked : blocked.blocked && currentDate <= sevenDaysLater;
+    });
   };
 
-  const filteredEvents = events.filter(event => {
-    const isBlocked = isEventBlocked(event);
-    return viewAvailable ? !isBlocked : isBlocked;
-  });
+  const filteredEvents = filterEvents();
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const currentEvents = filteredEvents.slice(indexOfLastEvent - eventsPerPage, indexOfLastEvent);
 
-  const indexOfLast = currentPage * eventsPerPage;
-  const indexOfFirst = indexOfLast - eventsPerPage;
-  const currentEvents = filteredEvents.slice(indexOfFirst, indexOfLast);
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '70vh' }}>
+        <div className="text-white text-center">
+          <div className="spinner-border text-light" role="status" />
+          <p className="mt-3">Cargando eventos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="event-page-container">
@@ -73,14 +132,7 @@ const HomePage = () => {
         <button className={!viewAvailable ? 'active' : ''} onClick={() => setViewAvailable(false)}>Eventos no disponibles</button>
       </div>
 
-      {loading ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: '70vh' }}>
-          <div className="text-white text-center">
-            <div className="spinner-border text-light" role="status" />
-            <p className="mt-3">Cargando eventos...</p>
-          </div>
-        </div>
-      ) : !selectedEvent ? (
+      {!selectedEvent ? (
         filteredEvents.length > 0 ? (
           <div className="pagination-container">
             {currentPage > 1 && (
@@ -89,29 +141,69 @@ const HomePage = () => {
 
             <div className="card-product-container">
               {currentEvents.map((event) => {
-                const isBlocked = isEventBlocked(event);
-                const daysLeftText = getDaysLeft(event.endPurchaseDate);
+                const blockStatus = isEventBlocked(event);
+                const warningData = getWarningMessage(event);
+                const locationParts = event.location.split(',').slice(-2).join(', ');
 
                 return (
-                  <div key={event._id} className={`card ${isBlocked ? 'card-blocked' : ''}`}>
+                  <div key={event._id} className={`card ${blockStatus.blocked ? 'card-blocked' : ''} ${warningData ? warningData.className : ''}`}>
                     <img src={event.coverImage || `${API_URL}/uploads/notfound.png`} alt={event.name} />
                     <h3>{event.name}</h3>
-                    {daysLeftText && <p className="text-warning fw-bold">{daysLeftText}</p>}
 
-                    <div className="info-grid">
-                      <div><FontAwesomeIcon icon={faCalendarAlt} /> <span>{new Date(event.startDate).toLocaleDateString()}</span></div>
-                      <div><FontAwesomeIcon icon={faMoneyBillWave} /> <span>${event.price}</span></div>
-                      <div><FontAwesomeIcon icon={faUsers} /> <span>{event.capacity}</span></div>
-                      <div><FontAwesomeIcon icon={faMapMarkerAlt} /> <span>{event.location}</span></div>
+                    {warningData && (
+                      <div className="warning-icon-wrapper">
+                        {warningData.warnings.map((warning, i) => (
+                          <div key={i} className="warning-icon-container">
+                            <FontAwesomeIcon
+                              icon={warning.type === 'cierre' ? faCalendarAlt : faUsers}
+                              className={`warning-icon pulse ${warning.severity === 'severe' ? 'warning-severe-icon' : 'warning-mild-icon'}`}
+                            />
+                            <span className="tooltip-text">{warning.message}</span>
+                          </div>
+                        ))}
+                        <p className="text-white mt-1"><strong>Faltan:</strong> {warningData.daysRemaining} {warningData.daysRemaining === 1 ? 'día' : 'días'} para que cierre la venta</p>
+                      </div>
+                    )}
+
+                    <div className="d-flex justify-content-between flex-wrap text-white icon-info-wrapper mt-2">
+                      <div className="info-icon tooltip-wrapper">
+                        <FontAwesomeIcon icon={faCalendarAlt} />
+                        <span className="tooltip-text">Inicio del evento</span>
+                        <p>{new Date(event.startDate).toLocaleDateString('es-AR')}</p>
+                      </div>
+
+                      <div className="info-icon tooltip-wrapper">
+                        <FontAwesomeIcon icon={faDollarSign} />
+                        <span className="tooltip-text">Precio</span>
+                        <p>${event.price}</p>
+                      </div>
+
+                      <div className="info-icon tooltip-wrapper">
+                        <FontAwesomeIcon icon={faUsers} />
+                        <span className="tooltip-text">Capacidad</span>
+                        <p>{event.capacity}</p>
+                      </div>
+
+                      <div className="info-icon tooltip-wrapper">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} />
+                        <span className="tooltip-text">Ubicación</span>
+                        <p>{locationParts}</p>
+                      </div>
                     </div>
 
+                    <p className="text-white mt-2">
+                      <strong>Cierre de compra:</strong> {new Date(event.endPurchaseDate).toLocaleDateString('es-AR')}
+                    </p>
+
+                    {blockStatus.blocked && <p className="block-reason"><strong>{blockStatus.message}</strong></p>}
+
                     <button
-                      className="button mt-3"
+                      className="button"
                       onClick={() => handleSelectEvent(event)}
-                      disabled={isBlocked}
-                      style={{ backgroundColor: isBlocked ? 'gray' : '#007bff' }}
+                      disabled={blockStatus.blocked}
+                      style={{ backgroundColor: blockStatus.blocked ? 'gray' : '#007bff', cursor: blockStatus.blocked ? 'not-allowed' : 'pointer' }}
                     >
-                      {isBlocked ? 'No disponible' : 'Seleccionar Evento'}
+                      {blockStatus.blocked ? blockStatus.message : 'Seleccionar Evento'}
                     </button>
                   </div>
                 );
@@ -123,7 +215,7 @@ const HomePage = () => {
             )}
           </div>
         ) : (
-          <p className="text-white">No encontramos nada...</p>
+          <p className="text-white text-center">No encontramos nada...</p>
         )
       ) : (
         <TransactionForm event={selectedEvent} />
