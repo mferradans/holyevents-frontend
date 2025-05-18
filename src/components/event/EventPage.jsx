@@ -12,8 +12,10 @@ const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
+  const [coords, setCoords] = useState(null); // NUEVO: estado para coordenadas
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+  const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -25,6 +27,23 @@ const EventPage = () => {
         const publicKey = publicKeyResponse.data.publicKey;
 
         initMercadoPago(publicKey, { locale: 'es-AR' });
+
+        // NUEVO: obtener coordenadas desde Geoapify
+        if (response.data.location) {
+          try {
+            const locationEncoded = encodeURIComponent(response.data.location);
+            const geoRes = await axios.get(
+              `https://api.geoapify.com/v1/geocode/search?text=${locationEncoded}&format=json&apiKey=${GEOAPIFY_API_KEY}`
+            );
+            if (geoRes.data && geoRes.data.results && geoRes.data.results.length > 0) {
+              const { lat, lon } = geoRes.data.results[0];
+              setCoords({ lat, lon });
+            }
+          } catch (geoErr) {
+            console.error('Error al obtener coordenadas:', geoErr);
+          }
+        }
+
       } catch (error) {
         console.error('Error al obtener el evento:', error);
       }
@@ -81,6 +100,21 @@ const EventPage = () => {
           <h1>{event.name}</h1>
           <p><strong>Descripción:</strong> {event.description}</p>
           <p><strong>Ubicación:</strong> {event.location}</p>
+
+          {/* NUEVO: Mapa si hay coordenadas */}
+          {coords && (
+            <div className="mt-3" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+              <iframe
+                title="Mapa del evento"
+                width="100%"
+                height="300"
+                style={{ border: 0, borderRadius: '10px' }}
+                src={`https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=300&center=lonlat:${coords.lon},${coords.lat}&zoom=15&marker=lonlat:${coords.lon},${coords.lat};color:%23ff0000;size:large&apiKey=${GEOAPIFY_API_KEY}`}
+                loading="lazy"
+              ></iframe>
+            </div>
+          )}
+
           <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
           <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
           <p><strong>Capacidad:</strong> {event.capacity} personas</p>
@@ -89,7 +123,7 @@ const EventPage = () => {
           {event.hasMenu && event.menuMoments.length > 0 && (
             <p>
               <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong> (
-              {event.menuMoments.map((moment) => formatDate(moment.dateTime)).join(', ')})
+              {event.menuMoments.map((moment) => formatDate(moment.dateTime)).join(', ')} )
             </p>
           )}
         </Col>
