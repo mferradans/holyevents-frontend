@@ -4,8 +4,7 @@ import axios from 'axios';
 import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col } from 'react-bootstrap';
-import { Button } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 
 const EventPage = () => {
@@ -13,6 +12,7 @@ const EventPage = () => {
   const [event, setEvent] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
   const [coords, setCoords] = useState(null);
+  const [loadingMap, setLoadingMap] = useState(true); // Nuevo: estado de carga del mapa
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
@@ -40,11 +40,16 @@ const EventPage = () => {
             }
           } catch (geoErr) {
             console.error('Error al obtener coordenadas:', geoErr);
+          } finally {
+            setLoadingMap(false);
           }
+        } else {
+          setLoadingMap(false);
         }
 
       } catch (error) {
         console.error('Error al obtener el evento:', error);
+        setLoadingMap(false);
       }
     };
 
@@ -105,19 +110,28 @@ const EventPage = () => {
           <p><strong>Ubicación:</strong> {event.location}</p>
 
           {/* Botón para ver en Google Maps */}
-                {coords && (
-        <Button
-          variant="outline-info"
-          size="sm"
-          className="mb-2"
-          onClick={() => window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lon}`, '_blank')}
-        >
-          Ver en Google Maps
-        </Button>
-      )}
+          {coords && (
+            <Button
+              variant="outline-info"
+              size="sm"
+              className="mb-2"
+              onClick={() => window.open(`https://www.google.com/maps?q=${coords.lat},${coords.lon}`, '_blank')}
+            >
+              Ver en Google Maps
+            </Button>
+          )}
+
+          {/* Spinner mientras carga el mapa */}
+          {loadingMap && (
+            <div className="mt-3 d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+              <Spinner animation="border" role="status" variant="light">
+                <span className="visually-hidden">Cargando mapa...</span>
+              </Spinner>
+            </div>
+          )}
 
           {/* Mapa Geoapify */}
-          {coords && (
+          {!loadingMap && coords && (
             <div className="mt-2 mb-3" style={{ borderRadius: '10px', overflow: 'hidden' }}>
               <iframe
                 title="Mapa del evento"
