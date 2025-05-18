@@ -105,7 +105,96 @@ const EventForm = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // ... (todo el resto de tus funciones, incluyendo handleAddMenuMoment, handleFileChange, etc. permanecen igual)
+  const handleAddMenuMoment = () => {
+    if (!newMenuMoment.dateTime || !newMenuMoment.menuOptions) return;
+
+    const dateTimeUTC = DateTime
+      .fromISO(newMenuMoment.dateTime, { zone: 'America/Argentina/Buenos_Aires' })
+      .toUTC()
+      .toISO();
+
+    const updatedMoments = [...formData.menuMoments, {
+      dateTime: dateTimeUTC,
+      menuOptions: newMenuMoment.menuOptions.split(',').map(opt => opt.trim()),
+    }];
+
+    const sortedMoments = updatedMoments.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+
+    setFormData({
+      ...formData,
+      menuMoments: sortedMoments,
+    });
+
+    setNewMenuMoment({ dateTime: '', menuOptions: '' });
+  };
+
+  const handleRemoveMenuMoment = (indexToRemove) => {
+    const updatedMoments = formData.menuMoments.filter((_, index) => index !== indexToRemove);
+    setFormData({ ...formData, menuMoments: updatedMoments });
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const maxSize = 3 * 1024 * 1024;
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Error: Solo se permiten imágenes en formato JPEG, JPG o PNG.");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      alert("Error: La imagen es demasiado grande. El tamaño máximo permitido es de 3MB.");
+      return;
+    }
+
+    const fileData = new FormData();
+    fileData.append("coverImage", file);
+
+    try {
+      setIsImageUploading(true);
+      const response = await axios.post(`${API_URL}/api/events/upload`, fileData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      setFormData({ ...formData, coverImage: response.data.imageUrl, imageRemoved: false });
+    } catch (error) {
+      console.error("Error al cargar la imagen:", error);
+      alert("Hubo un error al subir la imagen. Inténtalo nuevamente.");
+    } finally {
+      setIsImageUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, coverImage: '', imageRemoved: true });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isImageUploading || isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (id) {
+        await axios.put(`${API_URL}/api/events/${id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await axios.post(`${API_URL}/api/events/create`, formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      navigate('/admin/dashboard');
+    } catch (error) {
+      console.error('Error al enviar el formulario:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Form onSubmit={handleSubmit}>
@@ -139,8 +228,7 @@ const EventForm = () => {
           </Form.Group>
         </Col>
       </Row>
-
-      {/* el resto del formulario permanece igual (descripción, imagen, fechas, menú, etc.) */}
+      {/* El resto del formulario se mantiene igual */}
     </Form>
   );
 };
