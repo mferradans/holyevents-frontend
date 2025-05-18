@@ -12,7 +12,7 @@ const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
-  const [coords, setCoords] = useState(null); // NUEVO: estado para coordenadas
+  const [coords, setCoords] = useState(null);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
@@ -28,7 +28,6 @@ const EventPage = () => {
 
         initMercadoPago(publicKey, { locale: 'es-AR' });
 
-        // NUEVO: obtener coordenadas desde Geoapify
         if (response.data.location) {
           try {
             const locationEncoded = encodeURIComponent(response.data.location);
@@ -97,13 +96,27 @@ const EventPage = () => {
             style={{ width: '100%', maxWidth: '400px', borderRadius: '15px', objectFit: 'cover' }}
           />
 
-          <h1>{event.name}</h1>
+          <h1 className="mt-3">{event.name}</h1>
           <p><strong>Descripción:</strong> {event.description}</p>
+          <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
+          <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
+          <p><strong>Precio:</strong> ${event.price}</p>
+
           <p><strong>Ubicación:</strong> {event.location}</p>
 
-          {/* NUEVO: Mapa si hay coordenadas */}
+          {/* Botón para ver en Google Maps */}
+          <Button
+            variant="outline-info"
+            size="sm"
+            className="mb-2"
+            onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`, '_blank')}
+          >
+            Ver en Google Maps
+          </Button>
+
+          {/* Mapa Geoapify */}
           {coords && (
-            <div className="mt-3" style={{ borderRadius: '10px', overflow: 'hidden' }}>
+            <div className="mt-2 mb-3" style={{ borderRadius: '10px', overflow: 'hidden' }}>
               <iframe
                 title="Mapa del evento"
                 width="100%"
@@ -115,10 +128,7 @@ const EventPage = () => {
             </div>
           )}
 
-          <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
-          <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
           <p><strong>Capacidad:</strong> {event.capacity} personas</p>
-          <p><strong>Precio:</strong> ${event.price}</p>
 
           {event.hasMenu && event.menuMoments.length > 0 && (
             <p>
