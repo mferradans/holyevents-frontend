@@ -17,6 +17,7 @@ const EventPage = () => {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
+  const [adminPhone, setAdminPhone] = useState(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -24,11 +25,11 @@ const EventPage = () => {
         const response = await axios.get(`${API_URL}/api/events/${id}`);
         setEvent(response.data);
 
-        const publicKeyResponse = await axios.get(`${API_URL}/api/auth/${response.data.createdBy}/public_key`);
-        const publicKey = publicKeyResponse.data.publicKey;
-
+        const adminResponse = await axios.get(`${API_URL}/api/auth/${response.data.createdBy}/data`);
+        const publicKey = adminResponse.data.publicKey;
+        setAdminPhone(adminResponse.data.telefono || null);
         initMercadoPago(publicKey, { locale: 'es-AR' });
-
+        
         if (response.data.location) {
           try {
             const locationEncoded = encodeURIComponent(response.data.location);
@@ -194,7 +195,7 @@ const EventPage = () => {
         </Col>
 
         <Col md={6}>
-          <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={setFormData} />
+        <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={setFormData} adminPhone={adminPhone} />
           <div style={{ marginTop: '20px' }}>
             {preferenceId && <Wallet initialization={{ preferenceId }} />}
           </div>

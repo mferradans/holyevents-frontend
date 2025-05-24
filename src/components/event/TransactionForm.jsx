@@ -3,7 +3,7 @@ import { Form, Button, Spinner } from 'react-bootstrap';
 import '../admin/EventForm.css';
 import { DateTime } from 'luxon'; // ✅ Luxon para zona horaria
 
-const TransactionForm = ({ event, onSubmit }) => {
+const TransactionForm = ({ event, onSubmit, adminPhone }) => {
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -161,7 +161,7 @@ const TransactionForm = ({ event, onSubmit }) => {
               `Menús seleccionados:\n${menuText}`
             );
 
-            const phone = "5493534219889";
+            const phone = adminPhone;
             window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
           }}
         >
