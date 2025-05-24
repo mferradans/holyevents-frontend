@@ -1,55 +1,91 @@
-/* Aplica a todos los formularios */
+/* ---------- Estilo base del formulario ---------- */
 form {
-    max-width: 800px;
-    margin: 0 auto; /* Centrar el formulario */
-    padding: 20px;
-  }
-  
-  
-  /* Espaciado entre los grupos del formulario */
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  /* Opcional: ajustar la apariencia de los checkboxes y botones */
-  .form-check-input {
-    margin-right: 10px;
-  }
-  
-  button:disabled {
-    background-color: #ccc; /* Color gris para botones deshabilitados */
-    cursor: not-allowed;
-  }
-  .text-muted{
-    color:white;
-  }
-  .custom-input {
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Borde fino y opaco */
-    background-color: #1e1e1e; /* Fondo oscuro */
-    color: white; /* Texto claro */
-  }
-  
-  .custom-input:focus {
-    border-color: rgba(255, 255, 255, 0.1); /* Borde más visible al enfocarse */
-    outline: none; /* Eliminar borde adicional de enfoque */
-  }
-  /* Estilos especiales para los botones de MP y Transferencia */
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Espaciado entre los grupos del formulario */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Checkboxes u otros inputs especiales */
+.form-check-input {
+  margin-right: 10px;
+}
+
+/* Estilo para botones deshabilitados */
+button:disabled {
+  background-color: #ccc !important;
+  color: #333 !important;
+  cursor: not-allowed !important;
+  border-color: #ccc !important;
+}
+
+/* Estilo del texto que normalmente es gris */
+.text-muted {
+  color: white;
+}
+
+/* Inputs personalizados oscuros */
+.custom-input {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.custom-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  outline: none;
+}
+
+/* ---------- Estilos especiales para botones de pago ---------- */
+
+/* Botón de Mercado Pago */
 .mp-button {
   font-weight: bold;
   font-size: 1.05rem;
   border-width: 2px;
   transition: all 0.2s ease;
+  border-radius: 6px;
 }
 
-.disabled-like {
-  opacity: 0.6;
-  pointer-events: none;
-}
+/* Simula un botón desactivado aunque sea un div o span */
 .disabled-fake {
   background-color: #ccc;
   color: #333;
   padding: 12px;
   text-align: center;
-  border-radius: 5px;
+  border-radius: 6px;
   font-weight: 600;
+  font-size: 1rem;
+  border: 2px solid #bbb;
+  margin-bottom: 10px;
+}
+
+/* Aplica opacidad y evita clics */
+.disabled-like {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Botón de Transferencia habilitado */
+.btn-transfer {
+  background-color: #198754; /* verde bootstrap */
+  border-color: #198754;
+  color: white;
+  font-weight: 600;
+}
+
+.btn-transfer:hover {
+  background-color: #157347;
+  border-color: #146c43;
+}
+
+/* Botón de Transferencia deshabilitado */
+.btn-transfer:disabled {
+  background-color: #ccc !important;
+  border-color: #ccc !important;
+  color: #333 !important;
 }

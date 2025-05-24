@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { Wallet } from '@mercadopago/sdk-react';
 import { DateTime } from 'luxon';
@@ -14,6 +14,7 @@ const TransactionForm = ({ event, adminPhone }) => {
   });
 
   const [preferenceId, setPreferenceId] = useState(null);
+  const lastFormHash = useRef(null);
 
   const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -32,43 +33,45 @@ const TransactionForm = ({ event, adminPhone }) => {
     return true;
   };
 
+  // 🔐 Hashea la data para evitar crear preferencias duplicadas
+  const generateHash = (data) => {
+    return JSON.stringify(data);
+  };
+
   useEffect(() => {
     const generatePreference = async () => {
-      if (isFormValid()) {
-        try {
-          console.log("📤 Enviando datos para generar preferencia:", {
+      if (!isFormValid()) {
+        setPreferenceId(null);
+        lastFormHash.current = null;
+        return;
+      }
+
+      const currentHash = generateHash(formData);
+      if (currentHash === lastFormHash.current) {
+        return;
+      }
+
+      lastFormHash.current = currentHash;
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_preference`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: event._id,
+            price: event.price,
             name: formData.name,
             lastName: formData.lastName,
             email: formData.email,
             tel: formData.tel,
             selectedMenus: formData.selectedMenus,
-          });
-          
-          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_preference`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              eventId: event._id,
-              price: event.price,
-              name: formData.name,
-              lastName: formData.lastName,
-              email: formData.email,
-              tel: formData.tel,
-              selectedMenus: formData.selectedMenus,
-            }),
-          });
-          
-          const data = await response.json();
-          console.log("✅ Preferencia generada:", data.id);
-          setPreferenceId(data.id);
-          
-        } catch (err) {
-          console.error('❌ Error al crear preferencia:', err);
-          setPreferenceId(null);
-        }
-      } else {
+          }),
+        });
+
+        const data = await response.json();
+        setPreferenceId(data.id);
+      } catch (err) {
+        console.error('❌ Error al crear preferencia:', err);
         setPreferenceId(null);
       }
     };
@@ -163,17 +166,16 @@ const TransactionForm = ({ event, adminPhone }) => {
         )}
 
         <div className="mt-4">
-        {preferenceId ? (
-          <Wallet
-            initialization={{ preferenceId }}
-            customization={{ texts: { valueProp: 'smart_option' } }}
-          />
-        ) : (
-          <Button className="w-100" variant="secondary" disabled>
-            Completa el formulario para pagar con Mercado Pago
-          </Button>
-        )}
-
+          {isFormValid() && preferenceId ? (
+            <Wallet
+              initialization={{ preferenceId }}
+              customization={{ texts: { valueProp: 'smart_option' } }}
+            />
+          ) : (
+            <Button className="w-100" variant="secondary" disabled>
+              Completa el formulario para pagar con Mercado Pago
+            </Button>
+          )}
         </div>
 
         <Button
