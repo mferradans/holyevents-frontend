@@ -63,7 +63,7 @@ const SuccessPage = () => {
 
   const handleDownload = () => {
     if (!transactionId) return;
-    window.open(`${API_URL}/download_receipt/${transactionId}`, '_blank');
+    window.location.href = `${API_URL}/download_receipt/${transactionId}`;
   };
 
   return (
@@ -79,7 +79,7 @@ const SuccessPage = () => {
           <Spinner animation="border" role="status" variant="success">
             <span className="visually-hidden">Cargando...</span>
           </Spinner>
-          <p className="mt-3">Cargando tu comprobante...</p>
+          <p className="mt-3 text-white">Cargando tu comprobante...</p>
         </div>
       ) : transactionId ? (
         <Button variant="success" size="lg" onClick={handleDownload} className="my-3">
