@@ -2,22 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TransactionForm from './TransactionForm';
-import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
+import { initMercadoPago } from '@mercadopago/sdk-react';
 import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 import linkifyHtml from 'linkify-html';
-import { FaInstagram, FaWhatsapp } from 'react-icons/fa'; // ✅ Íconos
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
 
 const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
-  const [preferenceId, setPreferenceId] = useState(null);
   const [coords, setCoords] = useState(null);
   const [loadingMap, setLoadingMap] = useState(true);
-  const navigate = useNavigate();
+  const [adminPhone, setAdminPhone] = useState(null);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
-  const [adminPhone, setAdminPhone] = useState(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -28,8 +26,9 @@ const EventPage = () => {
         const adminResponse = await axios.get(`${API_URL}/api/auth/${response.data.createdBy}/data`);
         const publicKey = adminResponse.data.publicKey;
         setAdminPhone(adminResponse.data.telefono || null);
+
         initMercadoPago(publicKey, { locale: 'es-AR' });
-        
+
         if (response.data.location) {
           try {
             const locationEncoded = encodeURIComponent(response.data.location);
@@ -57,32 +56,6 @@ const EventPage = () => {
     fetchEvent();
   }, [id]);
 
-  const [formData, setFormData] = useState(null);
-
-  const handleFormSubmit = async (formData) => {
-    const id = await createPreference(event, formData);
-    if (id) {
-      setPreferenceId(id);
-    }
-  };
-
-  const createPreference = async (event, formData) => {
-    try {
-      const response = await axios.post(`${API_URL}/create_preference`, {
-        eventId: event._id,
-        price: event.price,
-        name: formData.name,
-        lastName: formData.lastName,
-        email: formData.email,
-        tel: formData.tel,
-        selectedMenus: formData.selectedMenus,
-      });
-      return response.data.id;
-    } catch (error) {
-      console.error('Error al crear preferencia de pago:', error);
-    }
-  };
-
   const formatDate = (isoString) => {
     return DateTime.fromISO(isoString, { zone: 'utc' })
       .setZone('America/Argentina/Buenos_Aires')
@@ -105,47 +78,44 @@ const EventPage = () => {
           <h1 className="mt-3">{event.name}</h1>
 
           <p><strong>Descripción:</strong></p>
+          <div className="mb-3">
+            {(() => {
+              const lines = event.description.split(/\r?\n/);
 
-<div className="mb-3">
-  {(() => {
-    const lines = event.description.split(/\r?\n/);
+              return lines.map((line, index) => {
+                if (line.includes('instagram.com')) {
+                  const match = line.match(/https?:\/\/(www\.)?instagram\.com[^\s]*/);
+                  return match ? (
+                    <div key={index}>
+                      <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
+                        <FaInstagram style={{ fontSize: '1.5rem', marginRight: '8px' }} />
+                        Ver Instagram
+                      </a>
+                    </div>
+                  ) : null;
+                }
 
-    return lines.map((line, index) => {
-      if (line.includes('instagram.com')) {
-        const match = line.match(/https?:\/\/(www\.)?instagram\.com[^\s]*/);
-        return match ? (
-          <div key={index}>
-            <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
-              <FaInstagram style={{ fontSize: '1.5rem', marginRight: '8px' }} />
-              Ver Instagram
-            </a>
+                if (line.includes('wa.me') || line.includes('whatsapp.com')) {
+                  const match = line.match(/https?:\/\/(www\.)?(wa\.me|whatsapp\.com)[^\s]*/);
+                  return match ? (
+                    <div key={index}>
+                      <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
+                        <FaWhatsapp style={{ fontSize: '1.5rem', marginRight: '8px' }} />
+                        Enviar WhatsApp
+                      </a>
+                    </div>
+                  ) : null;
+                }
+
+                const html = linkifyHtml(line, {
+                  target: '_blank',
+                  rel: 'noopener noreferrer'
+                });
+
+                return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+              });
+            })()}
           </div>
-        ) : null;
-      }
-
-      if (line.includes('wa.me') || line.includes('whatsapp.com')) {
-        const match = line.match(/https?:\/\/(www\.)?(wa\.me|whatsapp\.com)[^\s]*/);
-        return match ? (
-          <div key={index}>
-            <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
-              <FaWhatsapp style={{ fontSize: '1.5rem', marginRight: '8px' }} />
-              Enviar WhatsApp
-            </a>
-          </div>
-        ) : null;
-      }
-
-      // Enlaces normales o texto plano
-      const html = linkifyHtml(line, {
-        target: '_blank',
-        rel: 'noopener noreferrer'
-      });
-
-      return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
-    });
-  })()}
-</div>
-
 
           <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
           <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
@@ -176,7 +146,7 @@ const EventPage = () => {
               <iframe
                 title="Mapa del evento"
                 width="100%"
-                height="200" // ✅ altura reducida
+                height="200"
                 style={{ border: 0, borderRadius: '10px' }}
                 src={`https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=200&center=lonlat:${coords.lon},${coords.lat}&zoom=15&marker=lonlat:${coords.lon},${coords.lat};color:%23ff0000;size:large&apiKey=${GEOAPIFY_API_KEY}`}
                 loading="lazy"
@@ -195,10 +165,27 @@ const EventPage = () => {
         </Col>
 
         <Col md={6}>
-        <TransactionForm event={event} onSubmit={handleFormSubmit} formDataExternal={setFormData} adminPhone={adminPhone} />
-          <div style={{ marginTop: '20px' }}>
-            {preferenceId && <Wallet initialization={{ preferenceId }} />}
-          </div>
+          <TransactionForm
+            event={event}
+            onSubmit={async (formData) => {
+              try {
+                const response = await axios.post(`${API_URL}/create_preference`, {
+                  eventId: event._id,
+                  price: event.price,
+                  name: formData.name,
+                  lastName: formData.lastName,
+                  email: formData.email,
+                  tel: formData.tel,
+                  selectedMenus: formData.selectedMenus,
+                });
+                return response.data.id;
+              } catch (err) {
+                console.error('Error al crear preferencia de pago:', err);
+                return null;
+              }
+            }}
+            adminPhone={adminPhone}
+          />
         </Col>
       </Row>
     </Container>
