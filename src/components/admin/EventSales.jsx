@@ -170,7 +170,7 @@ const EventSales = () => {
                         )}
                       </>
                     ) : (
-                      <span className="text-muted">Sin menú</span>
+<span className="text-white">Sin menú</span>
                     )}
                   </td>
                   <td>{sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}</td>
@@ -219,7 +219,7 @@ const EventSales = () => {
                       )}
                     </>
                   ) : (
-                    <p className="text-muted mt-2">Sin menú</p>
+<p className="text-white mt-2">Sin menú</p>
                   )}
                 </Card.Body>
               </Card>
