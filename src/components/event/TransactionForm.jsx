@@ -56,6 +56,7 @@ const TransactionForm = ({ event, adminPhone }) => {
           setPreferenceId(data.id);
         } catch (err) {
           console.error('❌ Error al crear preferencia:', err);
+          setPreferenceId(null);
         }
       } else {
         setPreferenceId(null);
@@ -151,27 +152,19 @@ const TransactionForm = ({ event, adminPhone }) => {
           </>
         )}
 
-<div className="mt-4">
-  <Button
-    className={`w-100 mp-button ${preferenceId ? 'active' : 'disabled-like'}`}
-    variant={preferenceId ? 'primary' : 'secondary'}
-    disabled={!preferenceId}
-    style={{ padding: '0', height: '50px' }}
-  >
-    {preferenceId ? (
-      <Wallet
-        initialization={{ preferenceId }}
-        customization={{ texts: { valueProp: 'smart_option' } }}
-      />
-    ) : (
-      'Completa el formulario para pagar con Mercado Pago'
-    )}
-  </Button>
-</div>
-
+        <div className="mt-4">
+          {preferenceId ? (
+            <Wallet
+              initialization={{ preferenceId }}
+              customization={{ texts: { valueProp: 'smart_option' } }}
+            />
+          ) : (
+            <div className="w-100 btn btn-secondary disabled-fake">Completa el formulario para pagar con Mercado Pago</div>
+          )}
+        </div>
 
         <Button
-          variant="outline-success"
+          variant={isFormValid() ? 'success' : 'secondary'}
           className="mt-3 w-100"
           disabled={!isFormValid()}
           onClick={handleManualSubmit}
