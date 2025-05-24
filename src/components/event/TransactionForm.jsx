@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, Spinner } from 'react-bootstrap';
+import { Wallet } from '@mercadopago/sdk-react';
 import { DateTime } from 'luxon';
 import '../admin/EventForm.css';
 
@@ -12,7 +13,8 @@ const TransactionForm = ({ event, adminPhone }) => {
     selectedMenus: {},
   });
 
-  const [initPoint, setInitPoint] = useState(null);
+  const [preferenceId, setPreferenceId] = useState(null);
+  const [loadingPreference, setLoadingPreference] = useState(false);
   const lastFormHash = useRef(null);
 
   const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
@@ -39,7 +41,7 @@ const TransactionForm = ({ event, adminPhone }) => {
   useEffect(() => {
     const generatePreference = async () => {
       if (!isFormValid()) {
-        setInitPoint(null);
+        setPreferenceId(null);
         lastFormHash.current = null;
         return;
       }
@@ -48,6 +50,7 @@ const TransactionForm = ({ event, adminPhone }) => {
       if (currentHash === lastFormHash.current) return;
 
       lastFormHash.current = currentHash;
+      setLoadingPreference(true);
 
       try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_preference`, {
@@ -65,11 +68,12 @@ const TransactionForm = ({ event, adminPhone }) => {
         });
 
         const data = await response.json();
-        console.log("✅ Preferencia generada:", data);
-        setInitPoint(data.init_point);
+        setPreferenceId(data.id);
       } catch (err) {
         console.error('❌ Error al crear preferencia:', err);
-        setInitPoint(null);
+        setPreferenceId(null);
+      } finally {
+        setLoadingPreference(false);
       }
     };
 
@@ -122,22 +126,22 @@ const TransactionForm = ({ event, adminPhone }) => {
       <Form>
         <Form.Group controlId="formName">
           <Form.Label>Nombre:</Form.Label>
-          <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <Form.Control type="text" name="name" value={formData.name} onChange={handleChange} disabled={loadingPreference} required />
         </Form.Group>
 
         <Form.Group controlId="formLastName" className="mt-3">
           <Form.Label>Apellido:</Form.Label>
-          <Form.Control type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
+          <Form.Control type="text" name="lastName" value={formData.lastName} onChange={handleChange} disabled={loadingPreference} required />
         </Form.Group>
 
         <Form.Group controlId="formEmail" className="mt-3">
           <Form.Label>Email:</Form.Label>
-          <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} required />
+          <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} disabled={loadingPreference} required />
         </Form.Group>
 
         <Form.Group controlId="formTel" className="mt-3">
           <Form.Label>Teléfono:</Form.Label>
-          <Form.Control type="text" name="tel" value={formData.tel} onChange={handleChange} required />
+          <Form.Control type="text" name="tel" value={formData.tel} onChange={handleChange} disabled={loadingPreference} required />
         </Form.Group>
 
         {event.hasMenu && event.menuMoments.length > 0 && (
@@ -150,6 +154,7 @@ const TransactionForm = ({ event, adminPhone }) => {
                   as="select"
                   value={formData.selectedMenus[moment.dateTime] || ''}
                   onChange={(e) => handleMenuSelection(moment.dateTime, e.target.value)}
+                  disabled={loadingPreference}
                   required
                 >
                   <option value="">Seleccione una opción</option>
@@ -163,14 +168,16 @@ const TransactionForm = ({ event, adminPhone }) => {
         )}
 
         <div className="mt-4">
-          {isFormValid() && initPoint ? (
-            <Button
-              className="w-100"
-              variant="warning"
-              onClick={() => window.open(initPoint, '_blank')}
-            >
-              Pagar con Mercado Pago
-            </Button>
+          {loadingPreference ? (
+            <div className="text-center py-2">
+              <Spinner animation="border" variant="light" />
+              <div className="text-muted mt-2">Generando botón de Mercado Pago...</div>
+            </div>
+          ) : preferenceId && isFormValid() ? (
+            <Wallet
+              initialization={{ preferenceId }}
+              customization={{ texts: { valueProp: 'smart_option' } }}
+            />
           ) : (
             <Button className="w-100" variant="secondary" disabled>
               Completa el formulario para pagar con Mercado Pago
@@ -181,7 +188,7 @@ const TransactionForm = ({ event, adminPhone }) => {
         <Button
           variant={isFormValid() ? 'success' : 'secondary'}
           className="mt-3 w-100"
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || loadingPreference}
           onClick={handleManualSubmit}
         >
           Pagar con Transferencia / Efectivo
