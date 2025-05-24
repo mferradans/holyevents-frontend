@@ -165,13 +165,7 @@ const EventPage = () => {
         </Col>
 
         <Col md={6}>
-        <TransactionForm
-  event={event}
-  onSubmit={handleFormSubmit}
-  adminPhone={adminPhone}
-  setPreferenceId={setPreferenceId}
-/>
-
+          <TransactionForm event={event} adminPhone={adminPhone} />
         </Col>
       </Row>
     </Container>

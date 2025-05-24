@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { Wallet } from '@mercadopago/sdk-react';
-import '../admin/EventForm.css';
 import { DateTime } from 'luxon';
+import '../admin/EventForm.css';
 
-const TransactionForm = ({ event, onSubmit, adminPhone }) => {
+const TransactionForm = ({ event, adminPhone }) => {
   const [formData, setFormData] = useState({
     name: '',
     lastName: '',
@@ -36,16 +36,32 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
     const generatePreference = async () => {
       if (isFormValid()) {
         try {
-          const id = await onSubmit(formData);
-          setPreferenceId(id);
-        } catch (error) {
-          console.error('❌ Error generando preferencia:', error);
-          setPreferenceId(null);
+          const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_preference`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              eventId: event._id,
+              price: event.price,
+              name: formData.name,
+              lastName: formData.lastName,
+              email: formData.email,
+              tel: formData.tel,
+              selectedMenus: formData.selectedMenus,
+            }),
+          });
+
+          const data = await response.json();
+          setPreferenceId(data.id);
+        } catch (err) {
+          console.error('❌ Error al crear preferencia:', err);
         }
       } else {
         setPreferenceId(null);
       }
     };
+
     generatePreference();
   }, [formData]);
 
