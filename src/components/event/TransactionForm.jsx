@@ -36,6 +36,14 @@ const TransactionForm = ({ event, adminPhone }) => {
     const generatePreference = async () => {
       if (isFormValid()) {
         try {
+          console.log("📤 Enviando datos para generar preferencia:", {
+            name: formData.name,
+            lastName: formData.lastName,
+            email: formData.email,
+            tel: formData.tel,
+            selectedMenus: formData.selectedMenus,
+          });
+          
           const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/create_preference`, {
             method: 'POST',
             headers: {
@@ -51,6 +59,7 @@ const TransactionForm = ({ event, adminPhone }) => {
               selectedMenus: formData.selectedMenus,
             }),
           });
+          console.log("✅ Preferencia generada:", data.id);
 
           const data = await response.json();
           setPreferenceId(data.id);
