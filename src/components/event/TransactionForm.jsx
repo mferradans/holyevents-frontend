@@ -59,10 +59,11 @@ const TransactionForm = ({ event, adminPhone }) => {
               selectedMenus: formData.selectedMenus,
             }),
           });
-          console.log("✅ Preferencia generada:", data.id);
-
+          
           const data = await response.json();
+          console.log("✅ Preferencia generada:", data.id);
           setPreferenceId(data.id);
+          
         } catch (err) {
           console.error('❌ Error al crear preferencia:', err);
           setPreferenceId(null);
