@@ -33,4 +33,15 @@ form {
     border-color: rgba(255, 255, 255, 0.1); /* Borde más visible al enfocarse */
     outline: none; /* Eliminar borde adicional de enfoque */
   }
-  
+  /* Estilos especiales para los botones de MP y Transferencia */
+.mp-button {
+  font-weight: bold;
+  font-size: 1.05rem;
+  border-width: 2px;
+  transition: all 0.2s ease;
+}
+
+.disabled-like {
+  opacity: 0.6;
+  pointer-events: none;
+}

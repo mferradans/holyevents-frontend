@@ -151,15 +151,24 @@ const TransactionForm = ({ event, adminPhone }) => {
           </>
         )}
 
-        <div className="mt-4">
-          {preferenceId ? (
-            <Wallet initialization={{ preferenceId }} customization={{ texts: { valueProp: 'smart_option' } }} />
-          ) : (
-            <Button className="w-100" variant="primary" disabled>
-              Completa el formulario para pagar con Mercado Pago
-            </Button>
-          )}
-        </div>
+<div className="mt-4">
+  <Button
+    className={`w-100 mp-button ${preferenceId ? 'active' : 'disabled-like'}`}
+    variant={preferenceId ? 'primary' : 'secondary'}
+    disabled={!preferenceId}
+    style={{ padding: '0', height: '50px' }}
+  >
+    {preferenceId ? (
+      <Wallet
+        initialization={{ preferenceId }}
+        customization={{ texts: { valueProp: 'smart_option' } }}
+      />
+    ) : (
+      'Completa el formulario para pagar con Mercado Pago'
+    )}
+  </Button>
+</div>
+
 
         <Button
           variant="outline-success"
