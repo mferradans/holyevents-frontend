@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
+import { Wallet } from '@mercadopago/sdk-react';
 import '../admin/EventForm.css';
 import { DateTime } from 'luxon';
-import { Wallet } from '@mercadopago/sdk-react';
 
 const TransactionForm = ({ event, onSubmit, adminPhone }) => {
   const [formData, setFormData] = useState({
@@ -13,56 +13,79 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
     selectedMenus: {},
   });
 
-  const [isLoading, setIsLoading] = useState(false);
   const [preferenceId, setPreferenceId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
   const formatDate = (isoString) => {
-    return DateTime.fromISO(isoString, { zone: 'utc' })
+    const fecha = DateTime.fromISO(isoString, { zone: 'utc' })
       .setZone('America/Argentina/Buenos_Aires')
       .setLocale('es')
       .toFormat("cccc dd-MM, HH:mm");
+
+    return capitalizar(fecha);
   };
 
   const isFormValid = () => {
     if (!formData.name || !formData.lastName || !formData.email || !formData.tel) return false;
     if (event.hasMenu && event.menuMoments.length > 0) {
-      return event.menuMoments.every(moment => !!formData.selectedMenus[moment.dateTime]);
+      return event.menuMoments.every((moment) => !!formData.selectedMenus[moment.dateTime]);
     }
     return true;
   };
 
   useEffect(() => {
-    const generatePreference = async () => {
-      if (isFormValid() && !preferenceId) {
-        setIsLoading(true);
-        try {
-          const id = await onSubmit(formData);
-          if (id) setPreferenceId(id);
-        } catch (err) {
-          console.error("❌ Error al generar preferenceId:", err);
-        } finally {
-          setIsLoading(false);
-        }
+    const updatePreference = async () => {
+      if (isFormValid()) {
+        const id = await onSubmit(formData);
+        if (id) setPreferenceId(id);
+      } else {
+        setPreferenceId(null); // importante para bloquear si dejan de completar campos
       }
     };
-    generatePreference();
-  }, [formData]); // ⚠️ Se ejecuta cada vez que cambia el form
+
+    updatePreference();
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleMenuSelection = (dateTime, value) => {
-    setFormData(prev => ({
+  const handleMenuSelection = (momentDateTime, value) => {
+    setFormData((prev) => ({
       ...prev,
       selectedMenus: {
         ...prev.selectedMenus,
-        [dateTime]: value,
-      }
+        [momentDateTime]: value,
+      },
     }));
+  };
+
+  const handleManualSubmit = () => {
+    const { name, lastName, email, tel, selectedMenus } = formData;
+
+    const menuText = event.hasMenu && event.menuMoments.length > 0
+      ? Object.entries(selectedMenus).map(([key, value]) => {
+          const readable = capitalizar(
+            DateTime.fromISO(key, { zone: 'utc' })
+              .setZone('America/Argentina/Buenos_Aires')
+              .setLocale('es')
+              .toFormat("cccc dd-MM, HH:mm")
+          );
+          return `• ${readable}: ${value}`;
+        }).join('\n')
+      : 'Sin menú';
+
+    const message = encodeURIComponent(
+      `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
+      `Nombre: ${name} ${lastName}\nEmail: ${email}\nTeléfono: ${tel}\n\n` +
+      `Menús seleccionados:\n${menuText}`
+    );
+
+    const phone = adminPhone;
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
   return (
@@ -95,7 +118,7 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
             <h5 className="mt-3">Seleccione su menú para cada momento:</h5>
             {event.menuMoments.map((moment, index) => (
               <Form.Group key={index} controlId={`menuSelection-${index}`} className="mt-3">
-                <Form.Label>{capitalizar(formatDate(moment.dateTime))}</Form.Label>
+                <Form.Label>{formatDate(moment.dateTime)}</Form.Label>
                 <Form.Control
                   as="select"
                   value={formData.selectedMenus[moment.dateTime] || ''}
@@ -103,8 +126,8 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
                   required
                 >
                   <option value="">Seleccione una opción</option>
-                  {moment.menuOptions.map((menu, idx) => (
-                    <option key={idx} value={menu}>{menu}</option>
+                  {moment.menuOptions.map((menu, menuIndex) => (
+                    <option key={menuIndex} value={menu}>{menu}</option>
                   ))}
                 </Form.Control>
               </Form.Group>
@@ -112,44 +135,24 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
           </>
         )}
 
+        {/* ✅ BOTÓN DE MERCADO PAGO SIEMPRE MOSTRADO */}
+        <div className="mt-4">
+          <Wallet
+            initialization={{ preferenceId: preferenceId || '' }}
+            customization={{ texts: { valueProp: 'smart_option' } }}
+            onSubmit={(e) => e.preventDefault()}
+          />
+        </div>
+
+        {/* ✅ BOTÓN MANUAL ABAJO */}
         <Button
           variant="outline-success"
-          className="mt-4 w-100"
+          className="mt-3 w-100"
           disabled={!isFormValid()}
-          onClick={() => {
-            const { name, lastName, email, tel, selectedMenus } = formData;
-
-            const menuText = event.hasMenu && event.menuMoments.length > 0
-              ? Object.entries(selectedMenus).map(([key, value]) => {
-                  const readable = capitalizar(DateTime.fromISO(key, { zone: 'utc' })
-                    .setZone('America/Argentina/Buenos_Aires')
-                    .setLocale('es')
-                    .toFormat("cccc dd-MM, HH:mm"));
-                  return `• ${readable}: ${value}`;
-                }).join('\n')
-              : 'Sin menú';
-
-            const message = encodeURIComponent(
-              `Hola, quiero comprar un ticket para el evento "${event.name}" por transferencia o efectivo.\n\n` +
-              `Nombre: ${name} ${lastName}\nEmail: ${email}\nTeléfono: ${tel}\n\n` +
-              `Menús seleccionados:\n${menuText}`
-            );
-
-            window.open(`https://wa.me/${adminPhone}?text=${message}`, '_blank');
-          }}
+          onClick={handleManualSubmit}
         >
           Pagar con Transferencia / Efectivo
         </Button>
-
-        <div className="mt-3 w-100 text-center">
-          {preferenceId ? (
-            <Wallet initialization={{ preferenceId }} customization={{ visual: 'disabled' }} />
-          ) : (
-            <Button variant="secondary" disabled className="w-100">
-              Generando botón de Mercado Pago...
-            </Button>
-          )}
-        </div>
       </Form>
     </div>
   );
