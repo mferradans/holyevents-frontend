@@ -12,7 +12,7 @@ const EventSales = () => {
   const [expandedRows, setExpandedRows] = useState({});
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [highlightId, setHighlightId] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // ⬅️ loader agregado
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
@@ -147,24 +147,30 @@ const EventSales = () => {
                   <td>{sale.tel || "No proporcionado"}</td>
                   <td>{formatDateTime(sale.transactionDate)}</td>
                   <td>
-                    <Button 
-                      variant="outline-info" 
-                      size="sm" 
-                      onClick={() => toggleRow(sale._id)}
-                    >
-                      {expandedRows[sale._id] ? 'Ocultar' : 'Ver Menús'}
-                    </Button>
-                    {expandedRows[sale._id] && (
-                      <ul className="mt-2">
-                        {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => {
-                          const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
-                          return (
-                            <li key={moment}>
-                              {`${formatDateTime(fixedMoment)}: ${menu}`}
-                            </li>
-                          );
-                        })}
-                      </ul>
+                    {sale.selectedMenus && Object.keys(sale.selectedMenus).length > 0 ? (
+                      <>
+                        <Button 
+                          variant="outline-info" 
+                          size="sm" 
+                          onClick={() => toggleRow(sale._id)}
+                        >
+                          {expandedRows[sale._id] ? 'Ocultar' : 'Ver Menús'}
+                        </Button>
+                        {expandedRows[sale._id] && (
+                          <ul className="mt-2">
+                            {Object.entries(sale.selectedMenus).map(([moment, menu]) => {
+                              const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
+                              return (
+                                <li key={moment}>
+                                  {`${formatDateTime(fixedMoment)}: ${menu}`}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-muted">Sin menú</span>
                     )}
                   </td>
                   <td>{sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}</td>
@@ -190,24 +196,30 @@ const EventSales = () => {
                     <strong>Fecha de Compra:</strong> {formatDateTime(sale.transactionDate)}<br />
                     <strong>Tipo:</strong> {sale.metadataType === 'manual' ? 'Transferencia/Efectivo' : 'Mercado Pago'}
                   </Card.Text>
-                  <Button 
-                    variant="outline-info" 
-                    size="sm"
-                    onClick={() => toggleRow(sale._id)}
-                  >
-                    {expandedRows[sale._id] ? 'Ocultar Menús' : 'Ver Menús'}
-                  </Button>
-                  {expandedRows[sale._id] && (
-                    <ul className="mt-2">
-                      {Object.entries(sale.selectedMenus || {}).map(([moment, menu]) => {
-                        const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
-                        return (
-                          <li key={moment}>
-                            {`${formatDateTime(fixedMoment)}: ${menu}`}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                  {sale.selectedMenus && Object.keys(sale.selectedMenus).length > 0 ? (
+                    <>
+                      <Button 
+                        variant="outline-info" 
+                        size="sm"
+                        onClick={() => toggleRow(sale._id)}
+                      >
+                        {expandedRows[sale._id] ? 'Ocultar Menús' : 'Ver Menús'}
+                      </Button>
+                      {expandedRows[sale._id] && (
+                        <ul className="mt-2">
+                          {Object.entries(sale.selectedMenus).map(([moment, menu]) => {
+                            const fixedMoment = moment.replace('_t', 'T').replace('_z', 'Z');
+                            return (
+                              <li key={moment}>
+                                {`${formatDateTime(fixedMoment)}: ${menu}`}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted mt-2">Sin menú</p>
                   )}
                 </Card.Body>
               </Card>
