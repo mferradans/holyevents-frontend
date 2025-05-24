@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
-import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { DateTime } from 'luxon';
+import linkifyHtml from 'linkify-html'; // ✅ Agregado
 
 const EventPage = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [preferenceId, setPreferenceId] = useState(null);
   const [coords, setCoords] = useState(null);
-  const [loadingMap, setLoadingMap] = useState(true); // Nuevo: estado de carga del mapa
+  const [loadingMap, setLoadingMap] = useState(true);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
@@ -34,7 +34,7 @@ const EventPage = () => {
             const geoRes = await axios.get(
               `https://api.geoapify.com/v1/geocode/search?text=${locationEncoded}&format=json&apiKey=${GEOAPIFY_API_KEY}`
             );
-            if (geoRes.data && geoRes.data.results && geoRes.data.results.length > 0) {
+            if (geoRes.data?.results?.length > 0) {
               const { lat, lon } = geoRes.data.results[0];
               setCoords({ lat, lon });
             }
@@ -46,7 +46,6 @@ const EventPage = () => {
         } else {
           setLoadingMap(false);
         }
-
       } catch (error) {
         console.error('Error al obtener el evento:', error);
         setLoadingMap(false);
@@ -102,14 +101,23 @@ const EventPage = () => {
           />
 
           <h1 className="mt-3">{event.name}</h1>
-          <p><strong>Descripción:</strong> {event.description}</p>
+
+          <p><strong>Descripción:</strong></p>
+          <div
+            className="mb-3"
+            dangerouslySetInnerHTML={{
+              __html: linkifyHtml(event.description, {
+                target: '_blank',
+                rel: 'noopener noreferrer'
+              })
+            }}
+          ></div>
+
           <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
           <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
           <p><strong>Precio:</strong> ${event.price}</p>
-
           <p><strong>Ubicación:</strong> {event.location}</p>
 
-          {/* Botón para ver en Google Maps */}
           {coords && (
             <Button
               variant="outline-info"
@@ -121,24 +129,22 @@ const EventPage = () => {
             </Button>
           )}
 
-          {/* Spinner mientras carga el mapa */}
           {loadingMap && (
-            <div className="mt-3 d-flex justify-content-center align-items-center" style={{ height: '300px' }}>
+            <div className="mt-3 d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
               <Spinner animation="border" role="status" variant="light">
                 <span className="visually-hidden">Cargando mapa...</span>
               </Spinner>
             </div>
           )}
 
-          {/* Mapa Geoapify */}
           {!loadingMap && coords && (
             <div className="mt-2 mb-3" style={{ borderRadius: '10px', overflow: 'hidden' }}>
               <iframe
                 title="Mapa del evento"
                 width="100%"
-                height="300"
+                height="200" // ✅ altura reducida
                 style={{ border: 0, borderRadius: '10px' }}
-                src={`https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=300&center=lonlat:${coords.lon},${coords.lat}&zoom=15&marker=lonlat:${coords.lon},${coords.lat};color:%23ff0000;size:large&apiKey=${GEOAPIFY_API_KEY}`}
+                src={`https://maps.geoapify.com/v1/staticmap?style=osm-carto&width=600&height=200&center=lonlat:${coords.lon},${coords.lat}&zoom=15&marker=lonlat:${coords.lon},${coords.lat};color:%23ff0000;size:large&apiKey=${GEOAPIFY_API_KEY}`}
                 loading="lazy"
               ></iframe>
             </div>
