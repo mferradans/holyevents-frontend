@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button } from 'react-bootstrap';
-import { Wallet } from '@mercadopago/sdk-react';
 import { DateTime } from 'luxon';
 import '../admin/EventForm.css';
 
@@ -13,7 +12,7 @@ const TransactionForm = ({ event, adminPhone }) => {
     selectedMenus: {},
   });
 
-  const [preferenceId, setPreferenceId] = useState(null);
+  const [initPoint, setInitPoint] = useState(null);
   const lastFormHash = useRef(null);
 
   const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
@@ -33,7 +32,6 @@ const TransactionForm = ({ event, adminPhone }) => {
     return true;
   };
 
-  // 🔐 Hashea la data para evitar crear preferencias duplicadas
   const generateHash = (data) => {
     return JSON.stringify(data);
   };
@@ -41,15 +39,13 @@ const TransactionForm = ({ event, adminPhone }) => {
   useEffect(() => {
     const generatePreference = async () => {
       if (!isFormValid()) {
-        setPreferenceId(null);
+        setInitPoint(null);
         lastFormHash.current = null;
         return;
       }
 
       const currentHash = generateHash(formData);
-      if (currentHash === lastFormHash.current) {
-        return;
-      }
+      if (currentHash === lastFormHash.current) return;
 
       lastFormHash.current = currentHash;
 
@@ -69,10 +65,11 @@ const TransactionForm = ({ event, adminPhone }) => {
         });
 
         const data = await response.json();
-        setPreferenceId(data.id);
+        console.log("✅ Preferencia generada:", data);
+        setInitPoint(data.init_point);
       } catch (err) {
         console.error('❌ Error al crear preferencia:', err);
-        setPreferenceId(null);
+        setInitPoint(null);
       }
     };
 
@@ -166,11 +163,14 @@ const TransactionForm = ({ event, adminPhone }) => {
         )}
 
         <div className="mt-4">
-          {isFormValid() && preferenceId ? (
-            <Wallet
-              initialization={{ preferenceId }}
-              customization={{ texts: { valueProp: 'smart_option' } }}
-            />
+          {isFormValid() && initPoint ? (
+            <Button
+              className="w-100"
+              variant="warning"
+              onClick={() => window.open(initPoint, '_blank')}
+            >
+              Pagar con Mercado Pago
+            </Button>
           ) : (
             <Button className="w-100" variant="secondary" disabled>
               Completa el formulario para pagar con Mercado Pago
