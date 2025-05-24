@@ -5,7 +5,8 @@ import TransactionForm from './TransactionForm';
 import { Wallet, initMercadoPago } from '@mercadopago/sdk-react';
 import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import { DateTime } from 'luxon';
-import linkifyHtml from 'linkify-html'; // ✅ Agregado
+import linkifyHtml from 'linkify-html';
+import { FaInstagram, FaWhatsapp } from 'react-icons/fa'; // ✅ Íconos
 
 const EventPage = () => {
   const { id } = useParams();
@@ -103,15 +104,47 @@ const EventPage = () => {
           <h1 className="mt-3">{event.name}</h1>
 
           <p><strong>Descripción:</strong></p>
-          <div
-            className="mb-3"
-            dangerouslySetInnerHTML={{
-              __html: linkifyHtml(event.description, {
-                target: '_blank',
-                rel: 'noopener noreferrer'
-              })
-            }}
-          ></div>
+
+<div className="mb-3">
+  {(() => {
+    const lines = event.description.split(/\r?\n/);
+
+    return lines.map((line, index) => {
+      if (line.includes('instagram.com')) {
+        const match = line.match(/https?:\/\/(www\.)?instagram\.com[^\s]*/);
+        return match ? (
+          <div key={index}>
+            <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
+              <FaInstagram style={{ fontSize: '1.5rem', marginRight: '8px' }} />
+              Ver Instagram
+            </a>
+          </div>
+        ) : null;
+      }
+
+      if (line.includes('wa.me') || line.includes('whatsapp.com')) {
+        const match = line.match(/https?:\/\/(www\.)?(wa\.me|whatsapp\.com)[^\s]*/);
+        return match ? (
+          <div key={index}>
+            <a href={match[0]} target="_blank" rel="noopener noreferrer" className="text-white">
+              <FaWhatsapp style={{ fontSize: '1.5rem', marginRight: '8px' }} />
+              Enviar WhatsApp
+            </a>
+          </div>
+        ) : null;
+      }
+
+      // Enlaces normales o texto plano
+      const html = linkifyHtml(line, {
+        target: '_blank',
+        rel: 'noopener noreferrer'
+      });
+
+      return <div key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+    });
+  })()}
+</div>
+
 
           <p><strong>Fecha de Inicio:</strong> {formatDate(event.startDate)}</p>
           <p><strong>Fecha Fin de Compra:</strong> {formatDate(event.endPurchaseDate)}</p>
