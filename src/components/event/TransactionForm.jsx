@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Spinner } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import { Wallet } from '@mercadopago/sdk-react';
 import '../admin/EventForm.css';
 import { DateTime } from 'luxon';
@@ -14,17 +14,14 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
   });
 
   const [preferenceId, setPreferenceId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
   const formatDate = (isoString) => {
-    const fecha = DateTime.fromISO(isoString, { zone: 'utc' })
+    return DateTime.fromISO(isoString, { zone: 'utc' })
       .setZone('America/Argentina/Buenos_Aires')
       .setLocale('es')
-      .toFormat("cccc dd-MM, HH:mm");
-
-    return capitalizar(fecha);
+      .toFormat('cccc dd-MM, HH:mm');
   };
 
   const isFormValid = () => {
@@ -36,30 +33,34 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
   };
 
   useEffect(() => {
-    const updatePreference = async () => {
+    const generatePreference = async () => {
       if (isFormValid()) {
-        const id = await onSubmit(formData);
-        if (id) setPreferenceId(id);
+        try {
+          const id = await onSubmit(formData);
+          setPreferenceId(id);
+        } catch (error) {
+          console.error('❌ Error generando preferencia:', error);
+          setPreferenceId(null);
+        }
       } else {
-        setPreferenceId(null); // importante para bloquear si dejan de completar campos
+        setPreferenceId(null);
       }
     };
-
-    updatePreference();
+    generatePreference();
   }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleMenuSelection = (momentDateTime, value) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       selectedMenus: {
         ...prev.selectedMenus,
-        [momentDateTime]: value,
-      },
+        [momentDateTime]: value
+      }
     }));
   };
 
@@ -84,8 +85,7 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
       `Menús seleccionados:\n${menuText}`
     );
 
-    const phone = adminPhone;
-    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${adminPhone}?text=${message}`, '_blank');
   };
 
   return (
@@ -135,16 +135,16 @@ const TransactionForm = ({ event, onSubmit, adminPhone }) => {
           </>
         )}
 
-        {/* ✅ BOTÓN DE MERCADO PAGO SIEMPRE MOSTRADO */}
         <div className="mt-4">
-          <Wallet
-            initialization={{ preferenceId: preferenceId || '' }}
-            customization={{ texts: { valueProp: 'smart_option' } }}
-            onSubmit={(e) => e.preventDefault()}
-          />
+          {preferenceId ? (
+            <Wallet initialization={{ preferenceId }} customization={{ texts: { valueProp: 'smart_option' } }} />
+          ) : (
+            <Button className="w-100" variant="primary" disabled>
+              Completa el formulario para pagar con Mercado Pago
+            </Button>
+          )}
         </div>
 
-        {/* ✅ BOTÓN MANUAL ABAJO */}
         <Button
           variant="outline-success"
           className="mt-3 w-100"

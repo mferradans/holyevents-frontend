@@ -165,27 +165,13 @@ const EventPage = () => {
         </Col>
 
         <Col md={6}>
-          <TransactionForm
-            event={event}
-            onSubmit={async (formData) => {
-              try {
-                const response = await axios.post(`${API_URL}/create_preference`, {
-                  eventId: event._id,
-                  price: event.price,
-                  name: formData.name,
-                  lastName: formData.lastName,
-                  email: formData.email,
-                  tel: formData.tel,
-                  selectedMenus: formData.selectedMenus,
-                });
-                return response.data.id;
-              } catch (err) {
-                console.error('Error al crear preferencia de pago:', err);
-                return null;
-              }
-            }}
-            adminPhone={adminPhone}
-          />
+        <TransactionForm
+  event={event}
+  onSubmit={handleFormSubmit}
+  adminPhone={adminPhone}
+  setPreferenceId={setPreferenceId}
+/>
+
         </Col>
       </Row>
     </Container>
