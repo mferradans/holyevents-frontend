@@ -63,8 +63,15 @@ const SuccessPage = () => {
 
   const handleDownload = () => {
     if (!transactionId) return;
-    window.location.href = `${API_URL}/download_receipt/${transactionId}`;
+  
+    const link = document.createElement('a');
+    link.href = `${API_URL}/download_receipt/${transactionId}`;
+    link.setAttribute('download', `comprobante_${transactionId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+  
 
   return (
     <Container className="text-center mt-5">
