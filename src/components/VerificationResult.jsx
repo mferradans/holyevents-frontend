@@ -30,8 +30,11 @@ const VerificationResult = () => {
         } else {
           setStatus('error');
           setMessage(response.data.message || 'Transacción no válida.');
-          setVerified(true); // Si da error porque ya está verificada, lo marcamos igual
-          setTransactionData({ transactionId }); // Para que funcione el botón de ver en lista
+          setVerified(true); // ticket ya utilizado
+          setTransactionData({
+            transactionId,
+            eventId: response.data.eventId, // <- por si lo envías igual en error
+          });
         }
       } catch (error) {
         setStatus('error');
@@ -84,14 +87,18 @@ const VerificationResult = () => {
 
   return (
     <Container className="mt-5 mb-5 d-flex flex-column align-items-center justify-content-start" style={{ minHeight: '80vh', color: 'white' }}>
-      {status === 'success' ? (
+      {(status === 'success' || verified) ? (
         <Card className="bg-dark text-white w-100" style={{ maxWidth: '600px' }}>
           <Card.Body>
-            <p><strong>Nombre:</strong> {transactionData.lastName}, {transactionData.name}</p>
-            <p><strong>Email:</strong> {transactionData.email}</p>
-            <p><strong>Precio total:</strong> ${transactionData.price}</p>
-            <p><strong>Fecha de compra:</strong> {formatDate(transactionData.transactionDate)}</p>
-            <p><strong>ID del ticket:</strong> {transactionData.transactionId}</p>
+            {transactionData.lastName && (
+              <>
+                <p><strong>Nombre:</strong> {transactionData.lastName}, {transactionData.name}</p>
+                <p><strong>Email:</strong> {transactionData.email}</p>
+                <p><strong>Precio total:</strong> ${transactionData.price}</p>
+                <p><strong>Fecha de compra:</strong> {formatDate(transactionData.transactionDate)}</p>
+                <p><strong>ID del ticket:</strong> {transactionData.transactionId}</p>
+              </>
+            )}
 
             {transactionData.selectedMenus && Object.keys(transactionData.selectedMenus).length > 0 && (
               <>
@@ -122,14 +129,17 @@ const VerificationResult = () => {
                     <Button style={{ backgroundColor: '#ffc107', color: 'black' }} onClick={handleUncheck}>
                       ❌ Desverificar venta
                     </Button>
-                    <Button 
-                      variant="outline-light" 
-                      onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
-                    >
-                      Ver esta venta en lista
-                    </Button>
                   </div>
                 )}
+
+                <div className="d-grid mt-4">
+                  <Button
+                    variant="outline-light"
+                    onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
+                  >
+                    Ver esta venta en lista
+                  </Button>
+                </div>
 
                 {checkInStatus && (
                   <Alert variant={verified ? 'success' : 'warning'} className="mt-3">
@@ -148,7 +158,7 @@ const VerificationResult = () => {
         <Alert variant="danger" className="text-center w-100" style={{ maxWidth: '600px' }}>
           <h4>Error en la verificación</h4>
           <p>{message}</p>
-          {isLoggedIn && (
+          {isLoggedIn && transactionData.transactionId && transactionData.eventId && (
             <div className="d-grid mt-3">
               <Button 
                 variant="outline-light" 
