@@ -12,6 +12,9 @@ const VerificationResult = () => {
   const [status, setStatus] = useState(null);
   const [message, setMessage] = useState('Cargando...');
   const [transactionData, setTransactionData] = useState({});
+  const [verified, setVerified] = useState(false);
+  const [checkInStatus, setCheckInStatus] = useState(null);
+
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -21,6 +24,7 @@ const VerificationResult = () => {
         const response = await axios.get(`${API_URL}/verify_transaction/${transactionId}`);
         if (response.data.success) {
           setTransactionData(response.data);
+          setVerified(response.data.verified === true); // <- extraemos el estado de verificación
           setStatus('success');
         } else {
           setStatus('error');
@@ -39,6 +43,20 @@ const VerificationResult = () => {
       setMessage('ID de transacción no proporcionado.');
     }
   }, [transactionId]);
+
+  const handleCheckIn = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/checkin_transaction/${transactionId}`);
+      if (response.data.success) {
+        setCheckInStatus('✔ Ingreso validado correctamente.');
+        setVerified(true);
+      } else {
+        setCheckInStatus(response.data.message);
+      }
+    } catch (error) {
+      setCheckInStatus('Error al validar el ingreso.');
+    }
+  };
 
   const formatDate = (isoString) => {
     return DateTime.fromISO(isoString.replace('_t', 'T').replace('_z', 'Z'), { zone: 'utc' })
@@ -76,14 +94,28 @@ const VerificationResult = () => {
             )}
 
             {localStorage.getItem('token') && (
-              <div className="d-grid mt-4">
-                <Button 
-                  variant="outline-info" 
-                  onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
-                >
-                  Ver esta venta en lista
-                </Button>
-              </div>
+              <>
+                {!verified && (
+                  <div className="d-grid mt-4">
+                    <Button variant="success" onClick={handleCheckIn}>✅ Marcar ingreso</Button>
+                  </div>
+                )}
+
+                {checkInStatus && (
+                  <Alert variant={verified ? 'success' : 'warning'} className="mt-3">
+                    {checkInStatus}
+                  </Alert>
+                )}
+
+                <div className="d-grid mt-4">
+                  <Button 
+                    variant="outline-info" 
+                    onClick={() => navigate(`/admin/event/${transactionData.eventId}/sales?highlight=${transactionData.transactionId}`)}
+                  >
+                    Ver esta venta en lista
+                  </Button>
+                </div>
+              </>
             )}
           </Card.Body>
         </Card>
