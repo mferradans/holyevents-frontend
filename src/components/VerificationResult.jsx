@@ -19,29 +19,32 @@ const VerificationResult = () => {
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const isLoggedIn = !!localStorage.getItem('token');
 
-  useEffect(() => {
-    const verifyTransaction = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/verify_transaction/${transactionId}`);
-        if (response.data.success) {
-          setTransactionData(response.data);
-          setVerified(response.data.verified === true);
-          setStatus('success');
-        } else {
-          setStatus('error');
-          setMessage(response.data.message || 'Transacción no válida.');
-          setVerified(true); // ticket ya utilizado
-          setTransactionData({
-            transactionId,
-            eventId: response.data.eventId, // <- por si lo envías igual en error
-          });
-        }
-      } catch (error) {
+  const verifyTransaction = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/verify_transaction/${transactionId}`);
+      if (response.data.success) {
+        setTransactionData(response.data);
+        setVerified(response.data.verified === true);
+        setStatus('success');
+      } else {
         setStatus('error');
-        setMessage('Ocurrió un error inesperado.');
+        setMessage(response.data.message || 'Transacción no válida.');
+        setVerified(true); // ticket ya utilizado
+        setTransactionData({
+          transactionId,
+          eventId: response.data.eventId,
+          name: response.data.name,
+          lastName: response.data.lastName,
+          email: response.data.email,
+        });
       }
-    };
+    } catch (error) {
+      setStatus('error');
+      setMessage('Ocurrió un error inesperado.');
+    }
+  };
 
+  useEffect(() => {
     if (transactionId) {
       verifyTransaction();
     } else {
@@ -70,6 +73,9 @@ const VerificationResult = () => {
       if (response.data.success) {
         setCheckInStatus('❌ Venta desmarcada como ingresada.');
         setVerified(false);
+
+        // 🔁 Refrescar datos de la venta
+        await verifyTransaction();
       } else {
         setCheckInStatus(response.data.message);
       }
@@ -90,12 +96,21 @@ const VerificationResult = () => {
       {(status === 'success' || verified) ? (
         <Card className="bg-dark text-white w-100" style={{ maxWidth: '600px' }}>
           <Card.Body>
+            {status === 'error' && verified && (
+              <Alert variant="danger" className="text-center">
+                <h4>Error en la verificación</h4>
+                <p>{message}</p>
+              </Alert>
+            )}
+
             {transactionData.lastName && (
               <>
                 <p><strong>Nombre:</strong> {transactionData.lastName}, {transactionData.name}</p>
                 <p><strong>Email:</strong> {transactionData.email}</p>
-                <p><strong>Precio total:</strong> ${transactionData.price}</p>
-                <p><strong>Fecha de compra:</strong> {formatDate(transactionData.transactionDate)}</p>
+                {transactionData.price && <p><strong>Precio total:</strong> ${transactionData.price}</p>}
+                {transactionData.transactionDate && (
+                  <p><strong>Fecha de compra:</strong> {formatDate(transactionData.transactionDate)}</p>
+                )}
                 <p><strong>ID del ticket:</strong> {transactionData.transactionId}</p>
               </>
             )}
