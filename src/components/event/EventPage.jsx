@@ -158,12 +158,12 @@ const formatDate = (isoString) => {
 
           <p><strong>Capacidad:</strong> {event.capacity} personas</p>
 
-          {event.hasMenu && event.menuMoments.length > 0 && (
-            <p>
-              <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong> (
-              {event.menuMoments.map((moment) => formatDate(moment.dateTime)).join(', ')} )
-            </p>
-          )}
+{event.hasMenu && event.menuMoments.length > 0 && (
+  <p>
+    <strong>Incluye {event.menuMoments.length} menú{event.menuMoments.length > 1 ? 's' : ''}</strong>
+  </p>
+)}
+
         </Col>
 
         <Col md={6}>
