@@ -56,12 +56,14 @@ const EventPage = () => {
     fetchEvent();
   }, [id]);
 
-  const formatDate = (isoString) => {
-    return DateTime.fromISO(isoString, { zone: 'utc' })
-      .setZone('America/Argentina/Buenos_Aires')
-      .setLocale('es')
-      .toFormat('cccc dd-MM, HH:mm');
-  };
+const formatDate = (isoString) => {
+  return new Date(isoString).toLocaleDateString('en-GB', {
+    timeZone: 'UTC',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
 
   if (!event) return <div>Cargando...</div>;
 
