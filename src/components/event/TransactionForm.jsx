@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button, Spinner } from 'react-bootstrap';
-import { Wallet } from '@mercadopago/sdk-react';
+// import { Wallet } from '@mercadopago/sdk-react'; // Eliminado porque ya no usamos el botón oficial
 import { DateTime } from 'luxon';
 import '../admin/EventForm.css';
 
@@ -167,17 +167,28 @@ const TransactionForm = ({ event, adminPhone }) => {
           </>
         )}
 
+        {/* Sección personalizada para Mercado Pago */}
         <div className="mt-4">
+          <p><strong>Opción 1: Pago Automático con Mercado Pago</strong></p>
+          <p className="text-muted" style={{ fontSize: '0.9rem' }}>
+            Serás redirigido a Mercado Pago para abonar con tarjeta o saldo. Tu lugar queda reservado automáticamente al realizar el pago.
+          </p>
+
           {loadingPreference ? (
             <div className="text-center py-2">
               <Spinner animation="border" variant="light" />
-              <div className="text-muted mt-2">Generando botón de Mercado Pago...</div>
+              <div className="text-muted mt-2">Generando link de pago...</div>
             </div>
           ) : preferenceId && isFormValid() ? (
-            <Wallet
-              initialization={{ preferenceId }}
-              customization={{ texts: { valueProp: 'smart_option' } }}
-            />
+            <Button
+              className="w-100"
+              variant="primary"
+              onClick={() =>
+                window.location.href = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${preferenceId}`
+              }
+            >
+              Pagar con Mercado Pago
+            </Button>
           ) : (
             <Button className="w-100" variant="secondary" disabled>
               Completa el formulario para pagar con Mercado Pago
@@ -185,14 +196,23 @@ const TransactionForm = ({ event, adminPhone }) => {
           )}
         </div>
 
-        <Button
-          variant={isFormValid() ? 'success' : 'secondary'}
-          className="mt-3 w-100"
-          disabled={!isFormValid() || loadingPreference}
-          onClick={handleManualSubmit}
-        >
-          Pagar con Transferencia / Efectivo
-        </Button>
+        {/* Sección personalizada para Transferencia */}
+        <div className="mt-4">
+          <p><strong>Opción 2: Pago Manual por Transferencia o Efectivo</strong></p>
+          <p className="text-warning" style={{ fontSize: '0.9rem' }}>
+            Al hacer clic se abrirá WhatsApp para enviar tus datos al organizador.
+            <strong> Tu lugar NO queda reservado hasta que efectúes el pago manual.</strong>
+          </p>
+
+          <Button
+            variant={isFormValid() ? 'success' : 'secondary'}
+            className="mt-1 w-100"
+            disabled={!isFormValid() || loadingPreference}
+            onClick={handleManualSubmit}
+          >
+            Solicitar pago por Transferencia / Efectivo
+          </Button>
+        </div>
       </Form>
     </div>
   );
