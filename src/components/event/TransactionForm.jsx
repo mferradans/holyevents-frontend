@@ -170,9 +170,10 @@ const TransactionForm = ({ event, adminPhone }) => {
         {/* Sección personalizada para Mercado Pago */}
         <div className="mt-4">
           <p><strong>Opción 1: Pago Automático con Mercado Pago</strong></p>
-          <p className="text-muted" style={{ fontSize: '0.9rem' }}>
-            Serás redirigido a Mercado Pago para abonar con tarjeta o saldo. Tu lugar queda reservado automáticamente al realizar el pago.
-          </p>
+<p className="text-white" style={{ fontSize: '0.9rem' }}>
+  Serás redirigido a Mercado Pago para abonar con tarjeta o saldo. Tu lugar queda reservado automáticamente al realizar el pago.
+</p>
+
 
           {loadingPreference ? (
             <div className="text-center py-2">
@@ -199,7 +200,7 @@ const TransactionForm = ({ event, adminPhone }) => {
         {/* Sección personalizada para Transferencia */}
         <div className="mt-4">
           <p><strong>Opción 2: Pago Manual por Transferencia o Efectivo</strong></p>
-          <p className="text-warning" style={{ fontSize: '0.9rem' }}>
+          <p className="text-white" style={{ fontSize: '0.9rem' }}>
             Al hacer clic se abrirá WhatsApp para enviar tus datos al organizador.
             <strong> Tu lugar NO queda reservado hasta que efectúes el pago manual.</strong>
           </p>
