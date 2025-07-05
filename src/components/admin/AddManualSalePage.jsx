@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../../utils/axiosInstance.js';
-import { Form, Button, Spinner, Container, Row, Col } from 'react-bootstrap';
+import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 
 const AddManualSalePage = () => {
@@ -18,6 +18,8 @@ const AddManualSalePage = () => {
     selectedMenus: {}
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -68,18 +70,30 @@ const AddManualSalePage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/events/${eventId}/manual-sale`, payload, {
+      const response = await axios.post(`${API_URL}/api/events/${eventId}/manual-sale`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       console.log("✅ Venta manual guardada correctamente.");
-      navigate(`/admin/event/${eventId}/sales`);
+      setTransactionId(response.data.transactionId);
+      setShowSuccess(true);
     } catch (error) {
       console.error("❌ Error al guardar la venta manual:", error.response?.data || error.message);
       alert("Error al guardar la venta manual.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDownloadReceipt = () => {
+    if (!transactionId) return;
+    
+    const link = document.createElement('a');
+    link.href = `${API_URL}/download_receipt/${transactionId}`;
+    link.setAttribute('download', `comprobante_${transactionId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (!event) return <div className="text-white">Cargando evento...</div>;
@@ -148,10 +162,26 @@ const AddManualSalePage = () => {
           </>
         )}
 
-        <Button variant="success" type="submit" className="mt-4" disabled={isLoading}>
+        <Button variant="success" type="submit" className="mt-4" disabled={isLoading || showSuccess}>
           {isLoading ? <Spinner animation="border" size="sm" /> : 'Guardar Venta Manual'}
         </Button>
       </Form>
+
+      {showSuccess && (
+        <Alert variant="success" className="mt-4">
+          <Alert.Heading>¡Venta manual registrada correctamente!</Alert.Heading>
+          <p>La venta se ha guardado exitosamente. Ahora puedes descargar el comprobante.</p>
+          <hr />
+          <div className="d-flex justify-content-between">
+            <Button variant="success" onClick={handleDownloadReceipt}>
+              Descargar Comprobante
+            </Button>
+            <Button variant="outline-success" onClick={() => navigate(`/admin/event/${eventId}/sales`)}>
+              Ver Ventas del Evento
+            </Button>
+          </div>
+        </Alert>
+      )}
     </Container>
   );
 };
